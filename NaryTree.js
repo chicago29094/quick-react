@@ -124,13 +124,14 @@ class NaryTree {
     // Returns a boolean value
     contains(obj) {
 
-        const startingNode=this._root;
+        const treeIterator = this.levelOrderIterator(this._root);
 
-
-
-
-
-
+        for (let node of treeIterator) {
+            if (node.value===obj)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Return the root node of this n-ary tree
@@ -142,22 +143,48 @@ class NaryTree {
     // In an object is specified, get returns the first occurrence of the specified object using level-order traversal
     get(obj) {
 
+        if ( (obj===undefined) || (obj===null) ) {
+            return this._root.value;
+        }
+
+        const treeIterator = this.levelOrderIterator(this._root);
+
+        for (let node of treeIterator) {
+            if (node.value===obj) {
+                return node.value;
+            }
+        }
+        return null;
     }
 
     // getNode returns the n-ary tree node reference for the first occurrence of the specified object
     getNode(obj) {
 
+        if ( (obj===undefined) || (obj===null) ) {
+            return this._root;
+        }
+
+        const treeIterator = this.levelOrderIterator(this._root);
+
+        for (let node of treeIterator) {
+            if (node.value===obj) {
+                return node;
+            }
+        }
+        return null;
     }
 
     // returns the object in the root node
     getRootItem() {
-
+        return this._root.value;
     }
 
     // if naryNode is not specified, height returns the height of the naryTree from the root to the leaf nodes
     // if naryNode is specified, height return the height of the naryTree from the naryNode to the leaf nodes
     height(naryNode) {
-
+        return 1+Math.max(this._root.children.map( (node) => {
+            this.height(node);
+        } ) );
     }
 
     // Returns a boolean value regarding whether the n-ary tree is empty or not
@@ -223,7 +250,7 @@ class NaryTree {
 
     }
 
-    // Removes the complete subtree at the naryTree node is the root node
+    // Removes the complete subtree where the naryTree node parameter is the root node
     removeNode(naryNode) {
         
     }
@@ -269,11 +296,11 @@ console.log('Level Order Iterator=');
 const iter = tree.levelOrderIterator(tree.root);
 
 let h=0;
-for (let val of iter) {
+for (let node of iter) {
     h++;
     console.log(h);
-    console.log(val);
+    console.log(node);
 }
-
+ 
 console.log("Done");
 
