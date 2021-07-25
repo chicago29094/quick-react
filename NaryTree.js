@@ -1,10 +1,10 @@
-
+// n-ary Nodes have an item value, which can be any data type, although preferably an object, and 
+// an array of reference pointers to the node's children
 class NaryNode {
 
-    constructor(childObj, level) {
+    constructor(childObj) {
         this._value=childObj;
         this._children=[];
-        this._level=level;
     }
 
     get children() {
@@ -13,10 +13,6 @@ class NaryNode {
 
     get value() {
         return this._value;
-    }
-
-    get level() {
-        return this._level;
     }
 
 }
@@ -69,7 +65,7 @@ class NaryTree {
         if ( (parent===undefined) || (parent===null) || !(parent instanceof NaryNode) ) {
             throw new Error('A valid n-ary parent node must be specified to add a node to the n-ary tree.');
         }        
-        const node = new NaryNode(childObj, parent.level+1)
+        const node = new NaryNode(childObj)
         parent.children.unshift(node);
         this._size++;
         this._modCount++;
@@ -85,7 +81,7 @@ class NaryTree {
         if ( (parent===undefined) || (parent===null) || !(parent instanceof NaryNode) ) {
             throw new Error('A valid n-ary parent node must be specified to add a node to the n-ary tree.');
         }                
-        const node = new NaryNode(childObj, parent.level+1)
+        const node = new NaryNode(childObj)
         parent.children.push(node);
         this._size++;
         this._modCount++;        
@@ -104,7 +100,7 @@ class NaryTree {
         if ( (position<0) || (position>parent.children.length) ) {
             throw new Error('Position out of range. A tree node can not be added at the specified position.');
         }
-        const node = new NaryNode(childObj, parent.level++)
+        const node = new NaryNode(childObj)
         parent.children.splice(position, 0, node);
         this._size++;
         this._modCount++;        
