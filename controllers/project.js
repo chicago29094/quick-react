@@ -43,7 +43,7 @@ router.get('/:project_id', requireToken, async (req, res) => {
     }    
 
     try {
-        const project = await Project.findOne( {'project._id': req.params.project_id, 'user_id': req.user._id} )
+        const project = await Project.findOne( {'_id': req.params.project_id, 'user_id': req.user._id} )
         res.status(200).json(project)
     } catch (error) {
         console.error
@@ -107,11 +107,20 @@ router.delete('/:project_id', requireToken, async (req, res) => {
     } 
 
     try {
-        console.log(req.user);
-        const project = await Project.deleteOne({'project._id': req.params.project_id, 'user_id': req.user._id})
-
-        res.status(204).json(deletedProject)
-
+        // console.log(req.user);
+        const deletedProject = await Project.deleteOne({'_id': req.params.project_id, 'user_id': req.user._id},
+            (error, result) => {
+                if (error) {
+                    res.status(400).json({"ErrorMessage": `${error}`})  
+                }
+                else if (result.ok===1) {
+                    res.status(200).json({"Message": `project ${req.params.project_id} successfully deleted`});
+                }
+                else {
+                    res.status(400).json({"ErrorMessage": `project ${req.params.project_id} no match`});
+                }
+            }        
+        )
     } catch (error) {
         console.error(error)
         return res.status(503).json({"ErrorMessage": "Your request could not be processed."})    
@@ -150,7 +159,7 @@ router.put('/:project_id', requireToken, async (req, res) => {
             user_id: req.user._id
         }
                 
-        const updatedProject = await User.findByIdAndUpdate( { "project._id": req.params.project_id, "user_id": req.user._id}, {new: true} );
+        const updatedProject = await User.findByIdAndUpdate( { "_id": req.params.project_id, "user_id": req.user._id}, {new: true} );
         res.status(201).json(updatedProject);
     } catch (error) {
         console.error(error);
