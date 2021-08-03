@@ -1,15 +1,14 @@
-const UserSchema = require('./project');
 const mongoose = require('../db/connection');
 
 // Define the User Schema 
 const SessionSchema = new mongoose.Schema({
-    userID: { type: String, required: true },
+    user_id: { type: String, required: true },
     token: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    first_name: { type: String, required: true },
+    last_name: { type: String, required: true },
     status: { type: String, required: true },
     start: { type: Number, required: true },
-    lastAccess: { type: Number, required: true },
+    last_access: { type: Number, required: true },
 }, {
     timestamps: true
 });

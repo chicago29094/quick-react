@@ -5,23 +5,84 @@ const bcrypt = require('bcrypt');
 const { createUserToken } = require('../middleware/auth');
 
 const router = express.Router();
+let errorFlag=false;
+let errorMessage="";
 
 // Register Route
 // POST /api/register
-router.post('/register', async (req, res, next) => {
+router.post('/register', async (req, res) => {
+    errorFlag=false;
+    if ( (req===undefined) || (req.body===undefined) ) {
+        errorMessage="An invalid or incomplete request has been made for registration."; 
+        errorFlag=true;
+    }
+    if ( (req.body.password===undefined) || (req.body.password===null) ) {
+        errorMessage="Please enter a password for your user account.";  
+        errorFlag=true;
+    }
+    if ( (req.body.firstName===undefined) || (req.body.firstName===null) ) {
+        errorMessage="Please enter your first name.";  
+        errorFlag=true;
+    }
+    if ( (req.body.lastName===undefined) || (req.body.lastName===null) ) {
+        errorMessage="Please enter your last name.";  
+        errorFlag=true;
+    }
+    if ( (req.body.email===undefined) || (req.body.email===null) ) {
+        errorMessage="Please enter your email address.";  
+        errorFlag=true;
+    }
+
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    }
+
+    const userRecord = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        title: req.body.title,
+        company: req.body.company,
+        email: req.body.email,
+        password: "",
+        status: "Active",
+        created: Date.now(),
+        lastAccess: Date.now(),
+    };
+
     try {
       const password = await bcrypt.hash(req.body.password, 10);
-      const user = await User.create({ email: req.body.email, password });
+      userRecord.password=password;
+      const user = await User.create(userRecord);
       res.status(201).json(user);
     } catch (error) {
-      // return the next callback and pass it the error from catch
-      return next(error);
+      console.log(error);
+      return res.status(503).json({"ErrorMessage": "Your registration could not be processed.  Please check your input and try again."})   
     }
   });
 
 // Log In Route
 // POST /api/login
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req, res) => {
+
+    errorFlag=false;
+
+    if ( (req===undefined) || (req.body===undefined) ) {
+        errorMessage="An invalid or incomplete request has been made for registration."; 
+        errorFlag=true;
+    }
+    if ( (req.body.email===undefined) || (req.body.email===null) ) {
+        errorMessage="Please enter your email address to log in.";  
+        errorFlag=true;
+    }
+    if ( (req.body.password===undefined) || (req.body.password===null) ) {
+        errorMessage="Please enter your password to log in.";  
+        errorFlag=true;
+    }
+
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    }
+
     try {
 	    const user = await User.findOne({ email: req.body.email })
 
@@ -32,7 +93,8 @@ router.post('/login', async (req, res, next) => {
         // will send back a token that we'll in turn send to the client.
 		res.json({ token });
     } catch(error) {
-        next(error);
+        console.log(error);
+        return res.status(503).json({"ErrorMessage": "You have not successfully logged in.  Please check your account credentials and try again."})         
     }
 });
 
