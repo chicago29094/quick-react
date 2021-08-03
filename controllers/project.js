@@ -3,64 +3,158 @@ const router = express.Router();
 const { requireToken } = require('../middleware/auth');
 const Project = require('../models/project');
 
+
+let errorFlag=false;
+let errorMessage="";
+
 // User Project Routes
-// Index Route - List all user quick-react projects
-router.get('/:user_id', requireToken, async (req, res) => {
+// Index Route - List all quick-react projects for logged in user
+router.get('/', requireToken, async (req, res) => {
+
+    errorFlag=false;
+    if ( (req.user===undefined) || (req.user._id===undefined)) {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }    
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    }    
+
     try {
-        console.log(req.user);
-        const userProjects = await Project.findById(req.params.user_id)
+        const userProjects = await Project.find( {'user_id': req.user._id } )
         res.status(200).json(userProjects)
     } catch (error) {
         console.error(error)
+        return res.status(503).json({"ErrorMessage": "Your request could not be processed."})           
     }
 })
 
-// Show Route - Show the requested quick-react project
-router.get('/project/:project_id', requireToken, async (req, res) => {
+// Show Route - Show the requested quick-react project for the logged in user
+router.get('/:project_id', requireToken, async (req, res) => {
+
+    errorFlag=false;
+    if ( (req.user===undefined) || (req.user._id===undefined)) {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }    
+
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    }    
+
     try {
-        console.log(req.user);
-        const project = await User.findOne({'project._id': req.params.project_id})
+        const project = await Project.findOne( {'project._id': req.params.project_id, 'user_id': req.user._id} )
         res.status(200).json(project)
     } catch (error) {
         console.error
+        return res.status(503).json({"ErrorMessage": "Your request could not be processed."})           
     }
 })
 
 // Create Route - Add a new user quick-react project
 router.post('/', requireToken, async (req, res) => {
+        
+    errorFlag=false;
+    if ( (req.user===undefined) || (req.user._id===undefined)) {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }    
+
+    if ( (req.body===undefined) ) {
+        errorMessage="An invalid or incomplete request has been made to the API."; 
+        errorFlag=true;
+    }
+    if ( (req.body.project_name===undefined) || (req.body.project_name===null) ) {
+        errorMessage="Projects need to include a project name.";  
+        errorFlag=true;
+    }
+ 
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    }    
+
+    const projectRecord = {
+        project_name: req.body.project_name,
+        project_description: req.body.project_description,
+        project_markup: req.body.project_markup,
+        project_filepath: req.body.project_filepath,
+        project_archive: req.body.project_archive,
+        user_id: req.user._id
+    }
+
+    console.log(projectRecord);
+
     try {
-        console.log(req.user);
-        const newProject = await Project.create(req.body, {new: true})
+        const newProject = await Project.create(projectRecord)
         res.status(201).json(newProject)
     } catch (error) {
         console.error(error)
+        return res.status(503).json({"ErrorMessage": "Your request could not be processed."})    
     }
 })
 
 // Delete Route - Delete a user quick-react project 
 router.delete('/:project_id', requireToken, async (req, res) => {
+
+    errorFlag=false;
+    if ( (req.user===undefined) || (req.user._id===undefined)) {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }    
+
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    } 
+
     try {
         console.log(req.user);
-        const user = await Project.findOne({'project._id': req.params.project_id})
+        const project = await Project.deleteOne({'project._id': req.params.project_id, 'user_id': req.user._id})
 
-        res.status(204).json(newUser)
+        res.status(204).json(deletedProject)
 
     } catch (error) {
         console.error(error)
+        return res.status(503).json({"ErrorMessage": "Your request could not be processed."})    
     }
 })
 
 // Update Route
 router.put('/:project_id', requireToken, async (req, res) => {
     try {
-        console.log(req.user);
-        const project = await Project.findOne({'project._id': req.params.project_id})
-        book.set(req.body)
-        user.save()
-        const newUser = await User.findByIdAndUpdate(user._id, user, {new: true})
-        res.status(201).json(newUser)
+
+        errorFlag=false;
+        if ( (req.user===undefined) || (req.user._id===undefined)) {
+            errorMessage="An invalid or incomplete request has been submitted to the API."; 
+            errorFlag=true;
+        }    
+    
+        if ( (req.body===undefined) ) {
+            errorMessage="An invalid or incomplete request has been made to the API."; 
+            errorFlag=true;
+        }
+        if ( (req.body.name===undefined) || (req.body.name===null) ) {
+            errorMessage="Projects need to include a project name.";  
+            errorFlag=true;
+        }
+     
+        if (errorFlag===true) {
+            return res.status(400).json({"ErrorMessage": errorMessage})    
+        }    
+    
+        const projectRecord = {
+            project_name: req.body.project_name,
+            project_description: req.body.project_description,
+            project_markup: req.body.project_markup,
+            project_filepath: req.body.project_filepath,
+            project_archive: req.body.project_archive,
+            user_id: req.user._id
+        }
+                
+        const updatedProject = await User.findByIdAndUpdate( { "project._id": req.params.project_id, "user_id": req.user._id}, {new: true} );
+        res.status(201).json(updatedProject);
     } catch (error) {
-        console.error(error)
+        console.error(error);
+        return res.status(503).json({"ErrorMessage": "Your request could not be processed."});
     }
 })
 

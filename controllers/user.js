@@ -51,10 +51,12 @@ router.post('/register', async (req, res) => {
     };
 
     try {
-      const password = await bcrypt.hash(req.body.password, 10);
-      userRecord.password=password;
-      const user = await User.create(userRecord);
-      res.status(201).json(user);
+      const saltRounds=10;
+      bcrypt.hash(req.body.password, saltRounds, async function(err, passwordHash) {
+          userRecord.password=passwordHash;
+          const user = await User.create(userRecord);
+          res.status(201).json(user);
+      } );
     } catch (error) {
       console.log(error);
       return res.status(503).json({"ErrorMessage": "Your registration could not be processed.  Please check your input and try again."})   
