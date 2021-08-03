@@ -267,7 +267,7 @@ class NaryTree {
     // If obj is specified, remove removes the first occurrence of the specified object
     // If object and parent are specified, remove removes the first occurrence of the specified object which is a descendant of the parent obj
     remove(obj, parent) {
-        if ( (obj===undefined) || (obj===null) {
+        if ( (obj===undefined) || (obj===null) ) {
             // Although there is a convention for removing a node in a binary tree, including the root node,
             // this is less clear for an n-ary tree.  In this implementation, we will mode the left-most 
             // child node into the position as the root node and make the other former root node children,
@@ -289,7 +289,7 @@ class NaryTree {
                 return true;    
             }
         }
-        else if ( (obj!==undefined) && (obj!==null) {        
+        else if ( (obj!==undefined) && (obj!==null) ) {        
             removeNode = getNode(obj);
             if (removeNode===null) {
                 throw new ReferenceError('The specified object reference is not present in this n-ary tree.');
@@ -381,7 +381,7 @@ class NaryTree {
 
     // Removes the complete subtree where the naryTree node parameter is the root node of the sub-tree
     removeNode(naryNode) {
-        if ( (naryNode===undefined) || (naryNode===null) {
+        if ( (naryNode===undefined) || (naryNode===null) ) {
             throw new TypeError('A valid n-arty tree node must be specified as the removeNode argument.')
         }
 
@@ -461,9 +461,54 @@ class NaryTree {
 
     // If naryNode is not specified, returns a string representation of the entire n-ary tree
     // If naryNode is specified, returns a string representation of the n-ary tree from the specified naryNode 
-    toString(naryNode) {
+    toString(naryNode, relLevel=0) {
+        let str="";
+        let node = {};
+        // if this method wasn't invoked with a n-ary node, start from the root node
+        if ( (naryNode===undefined) || (naryNode===null) ) {
+            node=this._root;
+        }
+        else {
+            node = naryNode;
+        }
+        str=str+" ".repeat(relLevel*4);
+        str=str+this.toString(node, relLevel)+"\n";
+        for (let child of node.children) {
+            str=str+this.toString(child, relLevel+1)+"\n";
+        }
+        return str;
+    }
+
+    // If naryNode is not specified, returns a JSON representation of the entire n-ary tree
+    // If naryNode is specified, returns a JSON representation of the n-ary tree from the specified naryNode 
+    toJSON(naryNode, relLevel=0) {
+
+        let str = "";
+        let node = {}
+
+        if (naryNode===undefined || naryNode===null) {
+            node = this._root;
+        }
+        else {
+            node = naryNode;
+        }
+
+        str = str + "{\n";
+        if (node===this._root) {
+            str = str + `"root": ${node.value},\n`;
+            str = str + `"children":  `;
+        }
+        else {
+            str = str + `"root": ${node.value},\n`;
+            str = str + `"children":  `;            
+        }
+
+        for (let child of node.children) {
+            this.toJSON(child, relLevel+1);
+        }        
 
     }
+
 }
 
 
