@@ -12,6 +12,7 @@ let errorMessage="";
 // POST /api/register
 router.post('/register', async (req, res) => {
     errorFlag=false;
+    // console.log(req.body);
     if ( (req===undefined) || (req.body===undefined) ) {
         errorMessage="An invalid or incomplete request has been made for registration."; 
         errorFlag=true;
@@ -20,11 +21,11 @@ router.post('/register', async (req, res) => {
         errorMessage="Please enter a password for your user account.";  
         errorFlag=true;
     }
-    if ( (req.body.firstName===undefined) || (req.body.firstName===null) ) {
+    if ( (req.body.first_name===undefined) || (req.body.first_name===null) ) {
         errorMessage="Please enter your first name.";  
         errorFlag=true;
     }
-    if ( (req.body.lastName===undefined) || (req.body.lastName===null) ) {
+    if ( (req.body.last_name===undefined) || (req.body.last_name===null) ) {
         errorMessage="Please enter your last name.";  
         errorFlag=true;
     }
@@ -38,15 +39,15 @@ router.post('/register', async (req, res) => {
     }
 
     const userRecord = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
         title: req.body.title,
         company: req.body.company,
         email: req.body.email,
         password: "",
         status: "Active",
         created: Date.now(),
-        lastAccess: Date.now(),
+        last_access: Date.now(),
     };
 
     try {
