@@ -38,6 +38,11 @@ router.get('/:project_id', requireToken, async (req, res) => {
         errorFlag=true;
     }    
 
+    if ( (req.params.project_id==undefined) || (req.params.project_id.length!=24) )  {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }
+
     if (errorFlag===true) {
         return res.status(400).json({"ErrorMessage": errorMessage})    
     }    
@@ -102,6 +107,11 @@ router.delete('/:project_id', requireToken, async (req, res) => {
         errorFlag=true;
     }    
 
+    if ( (req.params.project_id==undefined) || (req.params.project_id.length!=24) )  {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }
+
     if (errorFlag===true) {
         return res.status(400).json({"ErrorMessage": errorMessage})    
     } 
@@ -141,11 +151,16 @@ router.put('/:project_id', requireToken, async (req, res) => {
             errorMessage="An invalid or incomplete request has been made to the API."; 
             errorFlag=true;
         }
-        if ( (req.body.name===undefined) || (req.body.name===null) ) {
+        if ( (req.body.project_name===undefined) || (req.body.project_name===null) ) {
             errorMessage="Projects need to include a project name.";  
             errorFlag=true;
         }
-     
+
+        if ( (req.params.project_id==undefined) || (req.params.project_id.length!=24) )  {
+            errorMessage="An invalid or incomplete request has been submitted to the API."; 
+            errorFlag=true;
+        }
+         
         if (errorFlag===true) {
             return res.status(400).json({"ErrorMessage": errorMessage})    
         }    
@@ -156,11 +171,16 @@ router.put('/:project_id', requireToken, async (req, res) => {
             project_markup: req.body.project_markup,
             project_filepath: req.body.project_filepath,
             project_archive: req.body.project_archive,
-            user_id: req.user._id
         }
                 
-        const updatedProject = await User.findByIdAndUpdate( { "_id": req.params.project_id, "user_id": req.user._id}, {new: true} );
-        res.status(201).json(updatedProject);
+        const updatedProject = await Project.findOneAndUpdate( { "_id": req.params.project_id, "user_id": req.user._id}, projectRecord, {new: true, useFindAndModify: false } );
+        console.log(updatedProject);
+        if ( (updatedProject===undefined) || (updatedProject===null) ) {
+            res.status(400).json({"ErrorMessage": `project ${req.params.project_id} no match`})  
+        }
+        else if (updatedProject) {
+            res.status(200).json({"Message": `project ${req.params.project_id} successfully updated`});
+        }
     } catch (error) {
         console.error(error);
         return res.status(503).json({"ErrorMessage": "Your request could not be processed."});
