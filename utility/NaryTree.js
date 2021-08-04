@@ -1,3 +1,5 @@
+
+
 // n-ary Nodes have an item value, which can be any data type, although preferably an object, and 
 // an array of reference pointers to the node's children
 class NaryNode {
@@ -23,7 +25,7 @@ class NaryNode {
 
 // This is an implementation of an iterable n-ary tree data structure and associated methods.
 // An n-ary tree is a tree data structure where any node may have an arbitrary number of 
-// child nodes. 
+// child nodes. This can potentially used as a trie, but it is not designed for that purpose.
 
 class NaryTree {
 
@@ -119,7 +121,7 @@ class NaryTree {
         return true;
     }
 
-    // Indicates whether the existing object exists in this n-ary tree
+    // Indicates whether an existing object, passed as an argument, exists in this n-ary tree
     // Returns a boolean value
     contains(obj) {
 
@@ -143,7 +145,7 @@ class NaryTree {
     }
 
     // In no object parameter is specified, return the root node object
-    // In an object is specified, get returns the first occurrence of the specified object using level-order traversal
+    // In an object is specified, get returns the first occurrence of the specified object using a level-order tree traversal iterator.
     get(obj) {
 
         if ( (obj===undefined) || (obj===null) ) {
@@ -160,7 +162,7 @@ class NaryTree {
         return null;
     }
 
-    // getNode returns the n-ary tree node reference for the first occurrence of the specified object
+    // getNode returns the n-ary tree node reference for the first occurrence of the specified object passed as an argument to the method.
     getNode(obj) {
 
         if ( (obj===undefined) || (obj===null) ) {
@@ -177,7 +179,7 @@ class NaryTree {
         return null;
     }
 
-    // returns the object in the root node
+    // returns the object in the root node of the tree
     getRootItem() {
         return this._root.value;
     }
@@ -212,7 +214,7 @@ class NaryTree {
         }
     }
 
-    // Returns a boolean value regarding whether the n-ary tree is empty or not
+    // Returns a boolean value reflecting whether the n-ary tree is empty or not
     isEmpty() {
         return (this._size===0)
     }
@@ -267,9 +269,12 @@ class NaryTree {
     // If obj is specified, remove removes the first occurrence of the specified object
     // If object and parent are specified, remove removes the first occurrence of the specified object which is a descendant of the parent obj
     remove(obj, parent) {
+
+        let removeNode={};
+        let parentNode={};
+        // Check to see if obj wasn't passed as an argument
         if ( (obj===undefined) || (obj===null) ) {
-            // Although there is a convention for removing a node in a binary tree, including the root node,
-            // this is less clear for an n-ary tree.  In this implementation, we will mode the left-most 
+            // Although there is a common convention for removing a node in a binary tree, including the root    // node, this is less clear for an n-ary tree.  In this implementation, we will move the left-most 
             // child node into the position as the root node and make the other former root node children,
             // children of this new root node.  If the intent was to remove the entire tree, the clear method
             // could be utilized for that purpose.
@@ -280,7 +285,7 @@ class NaryTree {
                 return true;
             }
             else if (this._root.children.length>=1) {
-                const previousRoot=this._root;  // Temp holder of previous root node reference
+                const previousRoot=this._root;  // Temporary placeholder of reference to previous root node
                 this._root = previousRoot.children.shift(); // The new root is the first left-most child of the previous root node
                 this._size -= 1; // The tree size is decreasing by one
                 this._modCount++;
@@ -289,8 +294,24 @@ class NaryTree {
                 return true;    
             }
         }
-        else if ( (obj!==undefined) && (obj!==null) ) {        
-            removeNode = getNode(obj);
+        // Was obj passed as an argument to the method?
+        else if ( (obj!==undefined) && (obj!==null) ) {
+            
+            // A parent node was specified, so we much only look in the parent node's subtree for the target object
+            if ( (parent!==undefined) && (parent!==null) ) {
+                const treeIterator = this.levelOrderIterator(parent);
+
+                let found=false;
+                for (let node of treeIterator) {
+                    if (node.value===obj) {
+                        removeNode=node;
+                    }                   
+                }                               
+            }
+            else {
+                removeNode = getNode(obj);
+            }
+
             if (removeNode===null) {
                 throw new ReferenceError('The specified object reference is not present in this n-ary tree.');
             }
@@ -298,7 +319,7 @@ class NaryTree {
                 this.remove(); // The remove node is the tree's root node, which is a special case.
                 return true;
             }
-            // First, check to see if the root node has no children, if so we just need to remove a reference to this child from it's parent node children array
+            // First, check to see if the remove node has no children, if so we simply need to only remove a reference to this child from it's parent node's children array
             if (removeNode.children.length===0) {
                 const treeIterator = this.levelOrderIterator(this._root);
 
@@ -314,6 +335,7 @@ class NaryTree {
                 }                
                 return true;
             }
+            // If the target remove node has children, we need to move the remove node's children up into its parent node's children array
             else if (removeNode.children.length>=1) {
                 const treeIterator = this.levelOrderIterator(this._root);
 
@@ -340,7 +362,7 @@ class NaryTree {
             throw new TypeErrot('A valid object must be specified when removing a sub-tree by object.')
         }
 
-        const treeIterator = this.levelOrderIterator(this._root);
+        let treeIterator = this.levelOrderIterator(this._root);
 
         let removeNode={};
         let found=false;
@@ -363,9 +385,9 @@ class NaryTree {
         }
 
         // Next, we need to find the parent node of this matching n-ary node
-        const treeIterator = this.levelOrderIterator(this._root);
+        treeIterator = this.levelOrderIterator(this._root);
 
-        let found=false;
+        found=false;
         for (let node of treeIterator) {
             let index=node.children.indexOf(removeNode);
             if (index!=-1) {
@@ -380,12 +402,12 @@ class NaryTree {
     }
 
     // Removes the complete subtree where the naryTree node parameter is the root node of the sub-tree
-    removeNode(naryNode) {
+    removeNodeSubtree(naryNode) {
         if ( (naryNode===undefined) || (naryNode===null) ) {
             throw new TypeError('A valid n-arty tree node must be specified as the removeNode argument.')
         }
 
-        const treeIterator = this.levelOrderIterator(this._root);
+        let treeIterator = this.levelOrderIterator(this._root);
 
         let removeNode={};
         let found=false;
@@ -406,9 +428,9 @@ class NaryTree {
         }
 
         // Next, we need to find the parent node of this matching n-ary node
-        const treeIterator = this.levelOrderIterator(this._root);
+        treeIterator = this.levelOrderIterator(this._root);
 
-        let found=false;
+        found=false;
         for (let node of treeIterator) {
             let index=node.children.indexOf(removeNode);
             if (index!=-1) {
@@ -430,7 +452,7 @@ class NaryTree {
             return this._size;
         }
 
-        const treeIterator = this.levelOrderIterator(this._root);
+        let treeIterator = this.levelOrderIterator(this._root);
 
         let sizeNode={};
         let found=false;
@@ -449,9 +471,9 @@ class NaryTree {
             return this._size;           
         }
 
-        const treeIterator = this.levelOrderIterator(sizeNode);
+        treeIterator = this.levelOrderIterator(sizeNode);
 
-        let size=0;
+        size=0;
         for (let node of treeIterator) {
             size++;
         }
@@ -512,36 +534,5 @@ class NaryTree {
 }
 
 
-let happyObj0 = { name: "happy", type: "dog" }
-const tree = new NaryTree();
-tree.add(happyObj0)
-let happyObj1 = { name: "happy1", type: "dog1" }
-tree.add(happyObj1)
-let happyObj2 = { name: "happy2", type: "dog2" }
-tree.add(happyObj2)
-let happyObj3 = { name: "happy3", type: "dog3" }
-tree.add(happyObj3)
-let happyObj4 = { name: "happy4", type: "dog4" }
-tree.add(happyObj4)
-let happyObj5 = { name: "happy5", type: "dog5" }
-tree.add(happyObj5)
-let happyObj6 = { name: "happy6", type: "dog6" }
-tree.add(happyObj6)
-
-//addAsLastChild(happyObj, parent)
-
-console.log('Tree=');
-console.log(tree);
-
-console.log('Level Order Iterator=');
-const iter = tree.levelOrderIterator(tree.root);
-
-let h=0;
-for (let node of iter) {
-    h++;
-    console.log(h);
-    console.log(node);
-}
- 
-console.log("Done");
-
+// Export these library classes to other node modules
+module.exports = { NaryNode, NaryTree };

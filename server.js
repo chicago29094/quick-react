@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const { NaryNode, NaryTree } = require('./utility/NaryTree');
 
 const PORT = process.env.PORT || 4000;
 
