@@ -25,26 +25,41 @@ describe('Nary Tree', function() {
         });
     });
 
-    let happyNode001 = { name: "happy", type: "dog", nodeNum: 1 };
+    let happyNode = { name: "happy", type: "dog", nodeNum: 1 };
 
     describe('NaryTree - add nodes', function() {
         it('a newly instantiated NaryTree should have a size of zero', function() {
             expect(tree.size()).to.equal(0);
         });
         it('adding a node to an empty tree should add the node to the root node', function() {
-            tree.add(happyNode001);
-            expect(tree.root).to.equal(happyNode001);
+            tree.add(happyNode);
+            expect(tree.root).to.equal(happyNode);
         });
         it('a tree with one node should have a size of 1', function() {
             expect(tree.size()).to.equal(1);
         });
 
+        happyNode = { name: "happy", type: "dog", nodeNum: 2 };
         it('adding a second node to the tree should add the new node as a child of the root node', function() {
-            tree.add(happyNode001);
-            expect(tree.root).to.equal(happyNode001);
+            tree.add(happyNode);
+            expect(tree.root.children[0]).to.equal(happyNode);
         });
-        it('a tree with one node should have a size of 1', function() {
-            expect(tree.size()).to.equal(1);
+
+        happyNode = { name: "happy", type: "dog", nodeNum: 3 };
+        it('adding a third node to the tree should add the new node as a child of the root node', function() {
+            tree.add(happyNode);
+            expect(tree.root.children[1]).to.equal(happyNode);
+        });
+
+        happyNode = { name: "happy", type: "dog", nodeNum: 4 };
+        it('adding a fourth node to the tree should add the new node as a child of the root node', function() {
+            tree.add(happyNode);
+            expect(tree.root.children[2]).to.equal(happyNode);
+            expect(tree.root.children[2].nodeNum).to.equal(4);
+        });
+
+        it('a tree with four nodes should have a size of 4', function() {
+            expect(tree.size()).to.equal(4);
         });
 
 
