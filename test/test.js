@@ -3,7 +3,67 @@ const should = require('chai').should();
 const expect = require('chai').expect;
 const {NaryNode, NaryTree} = require('../utility/NaryTree');
 
-describe('Nary Tree', function() {
+let tree = new NaryTree();
+
+const happyObject1 = { name: "happy", type: "dog", nodeNum: 1 };
+const happyObject2 = { name: "happy", type: "dog", nodeNum: 2 };
+const happyObject3 = { name: "happy", type: "dog", nodeNum: 3 };
+const happyObject4 = { name: "happy", type: "dog", nodeNum: 4 };
+const happyObject5 = { name: "happy", type: "dog", nodeNum: 5 };
+const happyObject6 = { name: "happy", type: "dog", nodeNum: 6 };
+const happyObject7 = { name: "happy", type: "dog", nodeNum: 7 };
+const happyObject8 = { name: "happy", type: "dog", nodeNum: 8 };
+const happyObject9 = { name: "happy", type: "dog", nodeNum: 9 };
+const happyObject10 = { name: "happy", type: "dog", nodeNum: 10 };
+const happyObject11 = { name: "happy", type: "dog", nodeNum: 11 };
+const happyObject12 = { name: "happy", type: "dog", nodeNum: 12 };
+const happyObject13 = { name: "happy", type: "dog", nodeNum: 13 };
+const happyObject14 = { name: "happy", type: "dog", nodeNum: 14 };
+const happyObject15 = { name: "happy", type: "dog", nodeNum: 15 };
+const happyObject16 = { name: "happy", type: "dog", nodeNum: 16 };
+const happyObject17 = { name: "happy", type: "dog", nodeNum: 17 };
+const happyObject18 = { name: "happy", type: "dog", nodeNum: 18 };
+const happyObject19 = { name: "happy", type: "dog", nodeNum: 19 };
+const happyObject20 = { name: "happy", type: "dog", nodeNum: 20 };
+const happyObject21 = { name: "happy", type: "dog", nodeNum: 21 };
+
+function rebuildTestTree() {
+
+    tree.clear();
+    tree.add(happyObject1);
+    tree.add(happyObject2);
+    tree.add(happyObject3);
+    tree.add(happyObject4);
+    tree.addAsLastChild(happyObject5, tree.getNode(happyObject2) );    
+
+    tree.addAsLastChild(happyObject6, tree.getNode(happyObject3) );    
+    tree.addAsLastChild(happyObject7, tree.getNode(happyObject3) );    
+    tree.addAsLastChild(happyObject8, tree.getNode(happyObject3) );    
+    
+    tree.addAsLastChild(happyObject9, tree.getNode(happyObject4) );    
+    tree.addAsLastChild(happyObject10, tree.getNode(happyObject4) );    
+
+    tree.addAsLastChild(happyObject11, tree.getNode(happyObject7) );    
+    tree.addAsLastChild(happyObject12, tree.getNode(happyObject7) );    
+
+    tree.addAsLastChild(happyObject20, tree.getNode(happyObject11) );    
+    tree.addAsLastChild(happyObject21, tree.getNode(happyObject11) );    
+
+    tree.addAsLastChild(happyObject13, tree.getNode(happyObject12) );    
+
+    tree.addAsLastChild(happyObject14, tree.getNode(happyObject10) );    
+    tree.addAsLastChild(happyObject15, tree.getNode(happyObject10) );    
+    tree.addAsLastChild(happyObject16, tree.getNode(happyObject10) );    
+    tree.addAsLastChild(happyObject17, tree.getNode(happyObject10) );    
+
+    tree.addAsLastChild(happyObject18, tree.getNode(happyObject15) );    
+    tree.addAsLastChild(happyObject19, tree.getNode(happyObject18) );    
+}
+
+
+    /*============================================================================*/
+
+    describe('Nary Tree', function() {
 
     describe('NaryNode', function() {
         it('instantiating a NaryNode should return a NaryNode object', function() {
@@ -13,10 +73,7 @@ describe('Nary Tree', function() {
         });
     });
 
-
     /*============================================================================*/
-
-    const tree = new NaryTree();
 
     describe('NaryTree - Instantiation', function() {
         it('instantiating a NaryTree should return a NaryTree object', function() {
@@ -29,28 +86,6 @@ describe('Nary Tree', function() {
     });
 
     /*============================================================================*/
-
-    const happyObject1 = { name: "happy", type: "dog", nodeNum: 1 };
-    const happyObject2 = { name: "happy", type: "dog", nodeNum: 2 };
-    const happyObject3 = { name: "happy", type: "dog", nodeNum: 3 };
-    const happyObject4 = { name: "happy", type: "dog", nodeNum: 4 };
-    const happyObject5 = { name: "happy", type: "dog", nodeNum: 5 };
-    const happyObject6 = { name: "happy", type: "dog", nodeNum: 6 };
-    const happyObject7 = { name: "happy", type: "dog", nodeNum: 7 };
-    const happyObject8 = { name: "happy", type: "dog", nodeNum: 8 };
-    const happyObject9 = { name: "happy", type: "dog", nodeNum: 9 };
-    const happyObject10 = { name: "happy", type: "dog", nodeNum: 10 };
-    const happyObject11 = { name: "happy", type: "dog", nodeNum: 11 };
-    const happyObject12 = { name: "happy", type: "dog", nodeNum: 12 };
-    const happyObject13 = { name: "happy", type: "dog", nodeNum: 13 };
-    const happyObject14 = { name: "happy", type: "dog", nodeNum: 14 };
-    const happyObject15 = { name: "happy", type: "dog", nodeNum: 15 };
-    const happyObject16 = { name: "happy", type: "dog", nodeNum: 16 };
-    const happyObject17 = { name: "happy", type: "dog", nodeNum: 17 };
-    const happyObject18 = { name: "happy", type: "dog", nodeNum: 18 };
-    const happyObject19 = { name: "happy", type: "dog", nodeNum: 19 };
-    const happyObject20 = { name: "happy", type: "dog", nodeNum: 20 };
-    const happyObject21 = { name: "happy", type: "dog", nodeNum: 21 };
  
     describe('NaryTree - add(childObj) method', function() {
         it('a newly instantiated NaryTree should have a size of zero', function() {
@@ -352,42 +387,189 @@ describe('Nary Tree', function() {
 
     /*============================================================================*/
 
+    describe('NaryTree - remove(obj, parent)', function() {
 
+        it('should remove the root node if no object is specified', function() {
+
+            const rootNode = tree.root;
+
+            // Add some additional nodes to fill out the test tree in preparation for removal methods
+            let parentNode=tree.getNode(happyObject7); 
+            tree.addAsFirstChild(happyObject12, parentNode);
+
+            parentNode=tree.getNode(happyObject12); 
+            tree.addAsFirstChild(happyObject13, parentNode);
+
+            parentNode=tree.getNode(happyObject7); 
+            tree.addAsFirstChild(happyObject11, parentNode);
+
+            parentNode=tree.getNode(happyObject11); 
+            tree.addAsFirstChild(happyObject20, parentNode);
+
+            parentNode=tree.getNode(happyObject11); 
+            tree.addAsFirstChild(happyObject21, parentNode);
+
+            //console.log(tree.toString());     
+
+            // Remove the root node
+            const expectedNewRootNode=tree.getNode(happyObject2);
+            tree.remove();
+            expect(tree.root).to.be.equal(expectedNewRootNode);
+     
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('NaryTree - remove(obj, parent)', function() {
+        it('should remove a leaf node', function() {
+      
+            //console.log(tree.toString());     
+
+            // Remove a leaf node 
+            tree.remove(happyObject5);
+            expect(tree.contains(happyObject5)).to.be.false;
+     
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('NaryTree - remove(obj, parent)', function() {
+        it('should remove an interior node with 1 child', function() {
+
+            //console.log(tree.toString());     
+
+            // Remove an interior node with one child 
+            tree.remove(happyObject12);
+            expect(tree.contains(happyObject12)).to.be.false;
+     
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('NaryTree - remove(obj, parent)', function() {
+        it('should remove an interior node with many children', function() {
+
+            //console.log(tree.toString());     
+            
+            // Remove an interior node with many children
+            tree.remove(happyObject10);
+            expect(tree.contains(happyObject10)).to.be.false;
+            
+            //console.log(tree.toString());     
+        });
+    });
+    
+    /*============================================================================*/
+    
+    describe('NaryTree - remove(obj, parent)', function() {
+        it('should remove an interior node under a specified parent', function() {
+            
+            // Add an existing object to a second location not underneath the targeted parent node
+            let parentNode=tree.getNode(happyObject2); 
+            tree.addAsFirstChild(happyObject16, parentNode);
+
+            parentNode=tree.getNode(happyObject6); 
+            tree.addAsFirstChild(happyObject16, parentNode);
+
+            //console.log(tree.toString());     
+
+            // Remove the target object underneath the specified node
+            parentNode=tree.getNode(happyObject4); 
+            tree.remove(happyObject16, parentNode);
+            expect(tree.contains(happyObject16)).to.be.true;
+
+            parentNode=tree.getNode(happyObject6);
+            expect(tree.contains(happyObject16, parentNode)).to.be.true;
+     
+            parentNode=tree.getNode(happyObject4);
+            expect(tree.contains(happyObject16, parentNode)).to.be.false;
+
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('NaryTree - removeSubtree(obj, parent)', function() {
+
+        it('should remove the subtree rooted in the node that references the parameter object', function() {
+
+            rebuildTestTree(); 
+
+            // Remove the matching subtree
+            tree.removeSubtree(happyObject7);
+            expect(tree.contains(happyObject7)).to.be.false;
+            expect(tree.contains(happyObject11)).to.be.false;
+            expect(tree.contains(happyObject21)).to.be.false;
+            expect(tree.contains(happyObject20)).to.be.false;
+     
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('NaryTree - removeSubtree(obj, parent)', function() {
+        it('should remove the subtree rooted in the node that references the parameter object', function() {
+
+            rebuildTestTree(); 
+
+            parentNode=tree.getNode(happyObject6); 
+            tree.addAsFirstChild(happyObject16, parentNode);
+
+            //console.log(tree.toString());   
+
+            // Remove the matching subtree
+
+            tree.removeSubtree(happyObject16, parentNode );
+            expect(tree.contains(happyObject6)).to.be.true;
+            expect(tree.contains(happyObject16)).to.be.true;
+            parentNode=tree.getNode(happyObject6); 
+            expect(tree.contains(happyObject16, parentNode)).to.be.false;
+     
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('NaryTree - removeNode(naryNode)', function() {
+
+        it('should remove the node passed as a parameter and adjust descendants if necessary', function() {
+
+            rebuildTestTree(); 
+
+            //console.log("Here000000:", tree.toString());   
+
+            let node = tree.getNode(happyObject10);
+            tree.removeNode(node);
+            expect(tree.contains(happyObject10)).to.be.false;
+     
+            //console.log(tree.toString());     
+
+            node = tree.getNode(happyObject6);
+            tree.removeNode(node);
+            expect(tree.contains(happyObject6)).to.be.false;
+
+            //console.log(tree.toString());     
+
+        });
+    });
+
+    /*============================================================================*/
 
 
 });
-
-/*
-
-tree.add(happyObj0)
-let happyObj1 = { name: "happy1", type: "dog1" }
-tree.add(happyObj1)
-let happyObj2 = { name: "happy2", type: "dog2" }
-tree.add(happyObj2)
-let happyObj3 = { name: "happy3", type: "dog3" }
-tree.add(happyObj3)
-let happyObj4 = { name: "happy4", type: "dog4" }
-tree.add(happyObj4)
-let happyObj5 = { name: "happy5", type: "dog5" }
-tree.add(happyObj5)
-let happyObj6 = { name: "happy6", type: "dog6" }
-tree.add(happyObj6)
-
-//addAsLastChild(happyObj, parent)
-
-console.log('Tree=');
-console.log(tree);
-
-console.log('Level Order Iterator=');
-const iter = tree.levelOrderIterator(tree.root);
-
-let h=0;
-for (let node of iter) {
-    h++;
-    console.log(h);
-    console.log(node);
-}
- 
-console.log("Done");
-*/
 
