@@ -186,31 +186,21 @@ class NaryTree {
 
     // if naryNode is not specified, height returns the height of the naryTree from the root to the leaf nodes
     // if naryNode is specified, height return the height of the naryTree from the naryNode to the leaf nodes
-    // parentNaryNode is only utilized for recursive calls to skip reiterating through the entire tree
-    height(naryNode, parentNaryNode) {
+    height(naryNode) {
+        if (this._size===0) {
+            return 0;
+        }
         if ( (naryNode===undefined) || (naryNode===null) ) {
-            return 1+Math.max(this._root.children.map( (node) => {
-                this.height(node. naryNode);
-            } ) );
+            return this.height(this._root);
         }
         else {
-            if ( (parentNaryNode===undefined) || (parentNaryNode==null) ) {
-                const treeIterator = this.levelOrderIterator(this._root);
-
-                let found=false;
-                for (let node of treeIterator) {
-                    if (node===naryNode) {
-                        found=true;
-                    }
-                }
-                if (found===false) {
-                    throw new ReferenceError('The specified n-ary node was not found in this tree.')        
-                }    
+            if (naryNode.children.length===0) {
+                return 1;
             }
 
-            return 1+Math.max(naryNode.children.map( (node) => {
-                this.height(node, naryNode);
-            } ) );
+            return 1+(naryNode.children.reduce( (value, node, index, array) => {
+                return Math.max(value, this.height(node));
+            }, -1 ) );
         }
     }
 
