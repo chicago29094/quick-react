@@ -250,7 +250,7 @@ class NaryTree {
         yield node;
 
         for (let child of node.children) {
-            this.preOrderIterator(child);
+            yield * this.preOrderIterator(child);
         }
 
     }
@@ -473,9 +473,10 @@ class NaryTree {
 
     // If naryNode is not specified, returns a string representation of the entire n-ary tree
     // If naryNode is specified, returns a string representation of the n-ary tree from the specified naryNode 
-    toString(naryNode, relLevel=0) {
+    toString(naryNode=this._root, relLevel=1) {
         let str="";
         let node = {};
+
         // if this method wasn't invoked with a n-ary node, start from the root node
         if ( (naryNode===undefined) || (naryNode===null) ) {
             node=this._root;
@@ -483,17 +484,18 @@ class NaryTree {
         else {
             node = naryNode;
         }
+
         str=str+" ".repeat(relLevel*4);
-        str=str+this.toString(node, relLevel)+"\n";
+        str=str+`Level:${relLevel} - ${node.value.nodeNum} \n`;
         for (let child of node.children) {
-            str=str+this.toString(child, relLevel+1)+"\n";
+            str=str+this.toString(child, relLevel+1);
         }
         return str;
     }
 
     // If naryNode is not specified, returns a JSON representation of the entire n-ary tree
     // If naryNode is specified, returns a JSON representation of the n-ary tree from the specified naryNode 
-    toJSON(naryNode, relLevel=0) {
+    toJSON(naryNode=this._root, relLevel=1) {
 
         let str = "";
         let node = {}
@@ -506,19 +508,17 @@ class NaryTree {
         }
 
         str = str + "{\n";
-        if (node===this._root) {
-            str = str + `"root": ${node.value},\n`;
-            str = str + `"children":  `;
-        }
-        else {
-            str = str + `"root": ${node.value},\n`;
-            str = str + `"children":  `;            
-        }
+        str = str + `    "root": ${node.value},\n`;
+        str = str + `    "children":  `;            
+    
 
         for (let child of node.children) {
-            this.toJSON(child, relLevel+1);
+            str = str + this.toJSON(child, relLevel+1);
         }        
 
+        str = str + "}\n";
+
+        return str;
     }
 
 }
