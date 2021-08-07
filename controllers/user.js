@@ -89,12 +89,19 @@ router.post('/login', async (req, res) => {
     try {
 	    const user = await User.findOne({ email: req.body.email })
 
-        // Pass the user and the request to createUserToken
-		const token = createUserToken(req, user);
+        try {
+            // Pass the user and the request to createUserToken
+            const token = createUserToken(req, user);
     
-		// createUserToken will either throw an error that will be caught by our error handler or 
-        // will send back a token that we'll in turn send to the client.
-		res.json({ token });
+            // createUserToken will either throw an error that will be caught by our error handler or 
+            // will send back a token that we'll in turn send to the client.
+            res.json({ user, token });
+    
+        } catch(error) {
+            console.log(error);
+            return res.status(401).json({"ErrorMessage": "You have not successfully logged in.  Please check your account credentials and try again."})         
+        }
+
     } catch(error) {
         console.log(error);
         return res.status(503).json({"ErrorMessage": "You have not successfully logged in.  Please check your account credentials and try again."})         
