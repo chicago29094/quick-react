@@ -38,7 +38,7 @@ router.get('/:project_id', requireToken, async (req, res) => {
         errorFlag=true;
     }    
 
-    if ( (req.params.project_id==undefined) || (req.params.project_id.length!=24) )  {
+    if ( (req.params.project_id===undefined) || (req.params.project_id.length!=24) )  {
         errorMessage="An invalid or incomplete request has been submitted to the API."; 
         errorFlag=true;
     }
@@ -107,7 +107,7 @@ router.delete('/:project_id', requireToken, async (req, res) => {
         errorFlag=true;
     }    
 
-    if ( (req.params.project_id==undefined) || (req.params.project_id.length!=24) )  {
+    if ( (req.params.project_id===undefined) || (req.params.project_id.length!=24) )  {
         errorMessage="An invalid or incomplete request has been submitted to the API."; 
         errorFlag=true;
     }
@@ -156,7 +156,7 @@ router.put('/:project_id', requireToken, async (req, res) => {
             errorFlag=true;
         }
 
-        if ( (req.params.project_id==undefined) || (req.params.project_id.length!=24) )  {
+        if ( (req.params.project_id===undefined) || (req.params.project_id.length!=24) )  {
             errorMessage="An invalid or incomplete request has been submitted to the API."; 
             errorFlag=true;
         }

@@ -2,12 +2,13 @@ const express = require('express');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 // Require the createUserToken method
-const { createUserToken } = require('../middleware/auth');
+const { createUserToken, requireToken } = require('../middleware/auth');
 
 const router = express.Router();
 let errorFlag=false;
 let errorMessage="";
 
+/*===========================================================================================================*/
 // Register Route
 // POST /api/register
 router.post('/register', async (req, res) => {
@@ -63,6 +64,7 @@ router.post('/register', async (req, res) => {
     }
   });
 
+/*===========================================================================================================*/
 // Log In Route
 // POST /api/login
 router.post('/login', async (req, res) => {
@@ -107,5 +109,32 @@ router.post('/login', async (req, res) => {
         return res.status(503).json({"ErrorMessage": "You have not successfully logged in.  Please check your account credentials and try again."})         
     }
 });
+
+
+/*===========================================================================================================*/
+// Show Route - Show the requested quick-react project for the logged in user
+router.get('/user/:user_id', requireToken, async (req, res) => {
+
+    if ( (req.params.user_id===undefined) || (req.params.user_id.length!=24) )  {
+        errorMessage="An invalid or incomplete request has been submitted to the API."; 
+        errorFlag=true;
+    }
+
+    if (errorFlag===true) {
+        return res.status(400).json({"ErrorMessage": errorMessage})    
+    }    
+
+    try {
+        const user = await User.findOne( {'_id': req.params.user_id } )
+        res.status(200).json(user)
+    } catch (error) {
+        console.error
+        return res.status(503).json({"ErrorMessage": "Your request could not be processed."})           
+    }
+})
+
+/*===========================================================================================================*/
+
+
 
 module.exports = router;
