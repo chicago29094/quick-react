@@ -52,12 +52,19 @@ router.post('/register', async (req, res) => {
     };
 
     try {
-      const saltRounds=10;
-      bcrypt.hash(req.body.password, saltRounds, async function(err, passwordHash) {
-          userRecord.password=passwordHash;
-          const user = await User.create(userRecord);
-          res.status(201).json(user);
-      } );
+
+        const user = await User.findOne( {'email': userRecord.email} )
+        if (user!==null) {
+            errorMessage="The e-mail address you have entered is already associated with an existing account.";  
+            return res.status(401).json({"ErrorMessage": errorMessage})    
+        }
+
+        const saltRounds=10;
+        bcrypt.hash(req.body.password, saltRounds, async function(err, passwordHash) {
+            userRecord.password=passwordHash;
+            const user = await User.create(userRecord);
+            res.status(201).json(user);
+        } );
     } catch (error) {
       console.log(error);
       return res.status(503).json({"ErrorMessage": "Your registration could not be processed.  Please check your input and try again."})   
