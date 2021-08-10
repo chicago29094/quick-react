@@ -90,35 +90,71 @@ class QuickReact {
         return this._tree;
     }
 
-    parseMarkup(input) {
-        if ( (input===undefined) || (input===null) || (typeof input !== string) ) {
-            return false;
+    parseMarkup(code) {
+        if ( (code===undefined) || (code===null) || (typeof code !== 'string') ) {
+            return this._tree;
         }
 
         let i=0;
         let j=0;
         let k=0;
-        let index=0;
+        let regex='';
+        let codeIndex=0;
+        let startIndex=0;
+        let endIndex=0;
         let start=0;
-        let end=input.length;
+        let end=code.length;
         let inComponent=false;
         let inComponentName=false;
         let inAttribute=false;
         let inAttributeName=false;
         let inAttributeValue=false;
 
-        while (index<end) {
+        console.log(code);
 
-            if (!inComponents) {
-                while (document.characterSet(index))
+        outer: while (codeIndex<end) {
+
+            if (!inComponent) {
+                startIndex=code.indexOf('<', codeIndex);
+                if (startIndex===-1) {
+                    throw new SyntaxError(`The markup code is missing an opening '<' character.  ${this._printRef(code, codeIndex, 80)}`);
+                }
+                endIndex=code.indexOf('>', codeIndex);
+                if (endIndex===-1) {
+                    throw new SyntaxError(`The markup code is missing a closing '>' character. ${this._printRef(code, startIndex, 80)} `);
+                }
+                inComponent=true;
+                console.log(`startIndex=${startIndex}  endIndex=${endIndex}`);
+
+                let component = code.slice(startIndex+1, endIndex);
+                console.log('Component=', component);
+
+                regex = /\s+,\s+|\s+,|,\s+/g
+                const normalizedComponent = component.replaceAll(regex, ',');
+                console.log('Normalized Component=', normalizedComponent);
+            
+                // Reassign component to normalized component
+                component=normalizedComponent;
+
+                const componentAttributes = component.split(' ');
+                console.log('Component Attributes=', componentAttributes)
+                let i=0;
+                for (let attribute of componentAttributes) {
+                    console.log(`attribute[${i}]=${attribute}`);
+                    i++;
+                }
+                inComponent=false;
+                codeIndex=endIndex+1;
             }
-
-
+            codeIndex++;
         }
 
+        return this._tree;
     }
 
-
+    _printRef(code, index, length) {
+        return `Reference: ${code.slice(index, index+length)}`
+    }
 
 }
 

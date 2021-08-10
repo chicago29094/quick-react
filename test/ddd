@@ -1,0 +1,34 @@
+
+> test
+> mocha
+
+
+
+  QuickReact Class Library
+    QuickReact Parsing
+      ✔ instantiating QuickReact should return a QuickReact object
+    QuickReact Parsing
+
+<App>
+    <Children useEffect, useChildren>
+</App>
+
+startIndex=1  endIndex=5
+Component= App
+Component Attributes= [ 'App' ]
+attribute[0]=App
+startIndex=11  endIndex=43
+Component= Children useEffect, useChildren
+Component Attributes= [ 'Children', 'useEffect,', 'useChildren' ]
+attribute[0]=Children
+attribute[1]=useEffect,
+attribute[2]=useChildren
+startIndex=45  endIndex=50
+Component= /App
+Component Attributes= [ '/App' ]
+attribute[0]=/App
+      ✔ parseMarkup with a blank file should return an empty n-ary tree 
+
+
+  2 passing (6ms)
+
