@@ -15,5 +15,11 @@
         "titleBar.inactiveBackground": "#040f1299",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#040f12"
+    "peacock.color": "#040f12",
+    "cSpell.words": [
+        "array",
+        "element",
+        "quickreact",
+        "selfclosingtag"
+    ]
 }
