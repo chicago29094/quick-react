@@ -106,9 +106,16 @@ class QuickReact {
         let end=code.length;
         let inComponent=false;
         let inComponentName=false;
+        let selfClosing=false;
         let inAttribute=false;
         let inAttributeName=false;
         let inAttributeValue=false;
+
+        let component = "";
+        let normalizedComponent = "";
+        let currentComponentNode = {};
+        let parentComponentNode = {};
+        let childComponentNode = {};
 
         console.log(code);
 
@@ -123,28 +130,46 @@ class QuickReact {
                 if (endIndex===-1) {
                     throw new SyntaxError(`The markup code is missing a closing '>' character. ${this._printRef(code, startIndex, 80)} `);
                 }
+                if (code.charAt(endIndex-1)==='/') {
+                    selfClosing=true;
+                    endIndex=endIndex-1;
+                }
                 inComponent=true;
                 console.log(`startIndex=${startIndex}  endIndex=${endIndex}`);
 
-                let component = code.slice(startIndex+1, endIndex);
-                console.log('Component=', component);
+                component = code.slice(startIndex+1, endIndex);
+                console.log(`Component=[${component}]`);
 
+                // Remove spaces around comma separated lists so split lexical tokenization can work better
                 regex = /\s+,\s+|\s+,|,\s+/g
-                const normalizedComponent = component.replaceAll(regex, ',');
-                console.log('Normalized Component=', normalizedComponent);
-            
-                // Reassign component to normalized component
+                normalizedComponent = component.replaceAll(regex, ',');
                 component=normalizedComponent;
+                // Remove single and double quotes around component attributes to ease further lexing and  subsequent parsing
+                regex = /\'|\"/g
+                normalizedComponent = component.replaceAll(regex, '');
+                component=normalizedComponent;
+                // Inside components collapse multiple spaces into a single space
+                regex = /\s+/g
+                normalizedComponent = component.replaceAll(regex, ' ');
+                component=normalizedComponent;
+                // Trim leading and trailing spaces from the component
+                normalizedComponent = component.trim();
+                component=normalizedComponent;
+
+                console.log(`Component=[${component}]`);
 
                 const componentAttributes = component.split(' ');
                 console.log('Component Attributes=', componentAttributes)
-                let i=0;
+                i=0;
                 for (let attribute of componentAttributes) {
                     console.log(`attribute[${i}]=${attribute}`);
                     i++;
                 }
+                if (selfClosing) codeIndex=endIndex+2;
+                else codeIndex=endIndex+1;
+                
                 inComponent=false;
-                codeIndex=endIndex+1;
+                selfClosing=false;
             }
             codeIndex++;
         }
