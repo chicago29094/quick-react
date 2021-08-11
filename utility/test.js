@@ -1,9 +1,12 @@
 
-const str = 'happy';
-console.log(str);
+function test( obj ) {
+    const [key, value] = Object.entries(obj)[0];
+    console.log(`key=[${key}] value=[${value}]`);
+}
 
-value = str.indexOf('<');
-console.log(value);
 
-value = str.slice(3, 100);
-console.log(value);
+test({'apple':'orange'});
+let barbara = undefined;
+console.log(barbara);
+
+

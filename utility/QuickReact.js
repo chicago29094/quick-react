@@ -1,5 +1,8 @@
 
 const {NaryNode, NaryTree} = require('./NaryTree');
+const quickReactTemplates = require('./QuickReactTemplates');
+const fs = require('fs');
+const path = require('path');
 
 /*================================================================================================*/
 // Quick-React elements are an object type where each element has an assigned type, name, and a 
@@ -59,6 +62,24 @@ class QuickReactElement {
         return this._attributes.has(key);
     }
 
+    // Safely Check to see if the Quick-React element has a specific attribute key set to a specific value
+    safeHasAttribute(obj) {
+        const [key, value] = Object.entries(obj)[0];
+
+        if (this._attributes.has(key)) {
+            if (this._attributes.get(key)===value) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+
     getAttributeSize() {
         return  this._attributes.size;
     }
@@ -74,7 +95,8 @@ class QuickReactElement {
     }
 
     // Set a key value pair
-    setAttribute({key, value}) {
+    setAttribute( obj ) {
+        const [key,value] = Object.entries(obj)[0];
         return this._attributes.set(key, value);
     }
 
@@ -82,6 +104,11 @@ class QuickReactElement {
     getAllAttributes() {
         return([...this._attributes]);
     }
+
+    toString() {
+        return `${this._name} ${this._attributes}`;
+    }
+
 }
 
 /*================================================================================================*/
@@ -133,7 +160,7 @@ class QuickReact {
         let quickReactElementStack = [];
         const quickreactElementArray = [];
 
-        console.log(code);
+        // console.log(code);
 
         // First we will lex the markup and parse it into quick-react object elements
         outer: while (codeIndex<end) {
@@ -194,7 +221,7 @@ class QuickReact {
                 currentQuickReactElement=new QuickReactElement('', '');
 
                 for (let attribute of componentAttributes) {
-                    if (tokenIndex===0) {
+                    if (tokenIndex===0) {({})
                         if (attribute==='Config') {
                             currentQuickReactElement.name='Config';
                             currentQuickReactElement.type='config';
@@ -242,6 +269,9 @@ class QuickReact {
 
                         if (attribute==='route')                    currentQuickReactElement.setAttribute( {'route': true} );
                         if (attribute==='route=true')               currentQuickReactElement.setAttribute( {'route': true} );
+
+                        if (attribute==='router')                    currentQuickReactElement.setAttribute( {'router': true} );
+                        if (attribute==='router=true')               currentQuickReactElement.setAttribute( {'router': true} );
 
                         if (attribute==='map')                      currentQuickReactElement.setAttribute( {'map': true} );
                         if (attribute==='map=true')                 currentQuickReactElement.setAttribute( {'map': true} );
@@ -322,6 +352,33 @@ class QuickReact {
                                 currentQuickReactElement.setAttribute( {'hooks': 'useContext'} );
                             }
                         }
+                        if ( (attribute===('useLocation')) || (attribute===('useLocation=true')) ) {
+                            if (currentQuickReactElement.hasAttribute('hooks')) {
+                                const combinedValue=`${currentQuickReactElement.getAttribute('hooks')},useLocation`;
+                                currentQuickReactElement.setAttribute( {'hooks': combinedValue} );
+                            }
+                            else {
+                                currentQuickReactElement.setAttribute( {'hooks': 'useLocation'} );
+                            }
+                        }
+                        if ( (attribute===('useHistory')) || (attribute===('useHistory=true')) ) {
+                            if (currentQuickReactElement.hasAttribute('hooks')) {
+                                const combinedValue=`${currentQuickReactElement.getAttribute('hooks')},useHistory`;
+                                currentQuickReactElement.setAttribute( {'hooks': combinedValue} );
+                            }
+                            else {
+                                currentQuickReactElement.setAttribute( {'hooks': 'useHistory'} );
+                            }
+                        }                                                
+                        if ( (attribute===('useParams')) || (attribute===('useParams=true')) ) {
+                            if (currentQuickReactElement.hasAttribute('hooks')) {
+                                const combinedValue=`${currentQuickReactElement.getAttribute('hooks')},useParams`;
+                                currentQuickReactElement.setAttribute( {'hooks': combinedValue} );
+                            }
+                            else {
+                                currentQuickReactElement.setAttribute( {'hooks': 'useParams'} );
+                            }
+                        }                                                
 
                         if ( (attribute.startsWith('useEffect*')) || 
                              (attribute.startsWith('useState*')) || 
@@ -338,7 +395,7 @@ class QuickReact {
 
                     }
 
-                    console.log(`attribute[${tokenIndex}]=${attribute}`);
+                    // console.log(`attribute[${tokenIndex}]=${attribute}`);
                     tokenIndex++;
                 }
 
@@ -359,7 +416,8 @@ class QuickReact {
         let hasConfig=false;
         for (let i=0; i<quickreactElementArray.length; i++) {
             if (quickreactElementArray[i].type==="config") {
-                this.tree.add(quickreactElementArray[i]);
+                this._tree.add(quickreactElementArray[i]);
+                quickReactElementStack.push(quickreactElementArray[i]);
                 hasConfig=true;
             }
         }
@@ -367,7 +425,8 @@ class QuickReact {
             currentQuickReactElement=new QuickReactElement('', '');
             currentQuickReactElement.name='Config';
             currentQuickReactElement.type='config';    
-            this.tree.add(currentQuickReactElement);       
+            this._tree.add(currentQuickReactElement);       
+            quickReactElementStack.push(quickreactElementArray[i]);
         }
 
         // All markup files must include an overall <App> tag and </App> tag.
@@ -375,12 +434,14 @@ class QuickReact {
         for (let i=0; i<quickreactElementArray.length; i++) {
             if ( (quickreactElementArray[i].name==="App") && (quickreactElementArray[i].subtype==="opentag") ) {
                 hasApp=true;
-                this.tree.addAsFirstChild(quickreactElementArray[i], this.tree.root);
+                this._tree.addAsFirstChild(quickreactElementArray[i], this._tree.root);
+                quickReactElementStack.push(quickreactElementArray[i])                
             }
         }
         if (!hasApp) {
             throw new SyntaxError(`The markup code must include an opening <App> component tag and closing </App> tag.`);
         }
+
 
         // for (let i=0; i<quickreactElementArray.length; i++) {
         //     console.log(`${quickreactElementArray[i].name} ${quickreactElementArray[i].type} ${quickreactElementArray[i].subtype} `);
@@ -405,34 +466,30 @@ class QuickReact {
             }
         }
 
+
+
         // Next we will fill in our n-ary tree data structure 
         for (let i=0; i<quickreactElementArray.length; i++) {
-            if (quickreactElementArray[i].name==="Config") {
-                quickReactElementStack.push(quickreactElementArray[i]);
-                continue;
-            }
-            else if (quickreactElementArray[i].name==="App") {
-                quickReactElementStack.push(quickreactElementArray[i]);
-                continue;
-            }
-            else if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].type==="opentag") ) {
+
+            //console.log(`${i} ${quickreactElementArray[i].name} ${quickreactElementArray[i].type} ${quickreactElementArray[i].subtype}`);
+
+            if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].subtype==="opentag") ) {
                 parentQuickReactElement=quickReactElementStack.pop();
-                parentComponentNode=this.tree.getNode(parentQuickReactElement);
+                parentComponentNode=this._tree.getNode(parentQuickReactElement);
                 quickReactElementStack.push(parentQuickReactElement);
                 quickReactElementStack.push(quickreactElementArray[i]);
-                this.tree.addAsLastChild(quickreactElementArray[i], parentComponentNode);
+                this._tree.addAsLastChild(quickreactElementArray[i], parentComponentNode);
             }
-            else if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].type==="selfclosingtag") ) {
+            else if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].subtype==="selfclosingtag") ) {
                 parentQuickReactElement=quickReactElementStack.pop();
-                parentComponentNode=this.tree.getNode(parentQuickReactElement);
+                parentComponentNode=this._tree.getNode(parentQuickReactElement);
                 quickReactElementStack.push(parentQuickReactElement);
-                quickReactElementStack.push(quickreactElementArray[i]);
-                this.tree.addAsLastChild(quickreactElementArray[i], parentComponentNode);
+                this._tree.addAsLastChild(quickreactElementArray[i], parentComponentNode);
             }
-            else if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].type==="closetag") ) {
+            else if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].subtype==="closetag") ) {
                 parentQuickReactElement=quickReactElementStack.pop();
-                if (parentQuickReactElement.name!==quickreactElementArray[i].name) {
-                    throw new SyntaxError(`Opening an closing tags for different components can not overlap.  Please check the placement of the following closing tag: </${quickreactElementArray[j].name}>.`);
+                if (`/${parentQuickReactElement.name}`!==quickreactElementArray[i].name) {
+                    throw new SyntaxError(`Opening and closing tags for different components can not overlap.  Please check the placement of the following tags: <${parentQuickReactElement.name}> <${quickreactElementArray[i].name}>.`);
                 }            
             }
         }
@@ -444,8 +501,675 @@ class QuickReact {
         return `Reference: ${code.slice(index, index+length)}`
     }
 
+
+    generateProjectFiles(userID, projectID, tree) {
+
+
+        if ( (userID===undefined) || (userID===null) ) {
+            return;
+        }
+        if ( (projectID===undefined) || (projectID===null) ) {
+            return;
+        }
+        if ( (tree===undefined) || !(tree instanceof NaryTree) ) {
+            return;
+        }
+
+        // First, check for important global configuration settings, like whether to use bootstrap
+        let quickReactElement = {};
+        let useBootstrap=false;
+        quickReactElement = tree.getByObjectPropery( {'_name':'Config'} );
+        if (quickReactElement.hasAttribute('react-bootstrap')) {
+            useBootstrap=quickReactElement.getAttribute('react-bootstrap');
+        }
+
+
+        const userDirectory = path.join(__dirname, '..', '..', 'project', userID);
+        const projectDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID)
+        const componentsDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "components")
+        const imagesDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "images")
+        const assetsDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "assets")
+
+        try {
+            if (!fs.existsSync(userDirectory)) {
+                fs.mkdirSync(userDirectory);
+            }
+            if (!fs.existsSync(projectDirectory)) {
+                fs.mkdirSync(projectDirectory);
+            }
+            if (!fs.existsSync(componentsDirectory)) {
+                fs.mkdirSync(componentsDirectory);
+            }
+            if (!fs.existsSync(imagesDirectory)) {
+                fs.mkdirSync(imagesDirectory);
+            }
+            if (!fs.existsSync(assetsDirectory)) {
+                fs.mkdirSync(assetsDirectory);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+        // Next, we will iterate through the entire n-ary tree, representing our Quick-React project and create folders, files, and settings component-by-component
+
+        const treeIterator = tree.levelOrderIterator(rootNode);
+
+        for (let node of treeIterator) {
+
+            const quickReactElement = node.value;
+            let document = "";
+
+            // Process the config node as index.js
+            if ( quickReactElement.name==='Config') {
+                // Use the config node as an opportunity to create an index_qr.js file
+                document = "";
+                document = document + output_index(useBoostrap, quickReactElement, node);               
+
+            }
+            else if ( quickReactElement.name==='App') {
+                document = "";
+                document = document + output_app(useBoostrap, quickReactElement, node);                 
+            }
+            else if ( quickReactElement.type==='component') {
+                document = "";
+                document = document + output_component(useBoostrap, quickReactElement, node);                 
+            }
+        }
+
+    }
+
 }
 
+/*================================================================================================*/
+
+function output_index(useBootstrap, quickReactElement, node) {
+
+let output = "";
+
+output = output + 
+`import React from 'react';
+import ReactDOM from 'react-dom';
+`;
+
+if (quickReactElement.safeHasAttribute( {'router': true} )) {
+output = output + 
+`import { BrowserRouter as Router } from 'react-router-dom';
+`;
+}
+
+if (useBoostrap) {
+import 'bootstrap/dist/css/bootstrap.min.css';
+}
+
+output = output + 
+`import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+`;
+
+if (quickReactElement.safeHasAttribute( {'router': true} )) {
+output = output + 
+`ReactDOM.render(
+<Router>
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
+</Router>,
+document.getElementById('root')
+);
+
+reportWebVitals();
+`;
+}
+else {
+output = output + 
+`ReactDOM.render(
+<Router>
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
+</Router>,
+document.getElementById('root')
+);
+
+reportWebVitals();
+`;
+}
+
+return output;
+
+}
+
+/*================================================================================================*/
+
+function output_app(useBootstrap, quickReactElement, node) {
+
+let output = "";
+
+output = output + `import React from 'react';\n`;
+
+let hooks=quickReactElement.getAttribute('hooks');
+if (hooks!==undefined) {
+    let hookTokenList="";
+    let comma="";
+    if (hooks.indexOf('useEffect')!=-1)     { hookTokenList=hookTokenList+comma+'useEffect'; comma=", "; }
+    if (hooks.indexOf('useState')!=-1)      { hookTokenList=hookTokenList+comma+'useState'; comma=", "; }
+    if (hooks.indexOf('useContext')!=-1)    { hookTokenList=hookTokenList+comma+'useContext'; comma=", "; }
+    if (hooks.indexOf('useReducer')!=-1)    { hookTokenList=hookTokenList+comma+'useReducer'; comma=", "; }
+
+    output = output + `import { ${hooksTokenList} } from 'react';\n`;
+}
+
+let reactSwitch=quickReactElement.getAttribute('switch');
+let reactRoute=quickReactElement.getAttribute('route');
+let reactLink=quickReactElement.getAttribute('link');
+
+if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRouter!==undefined) || (reactLink!==undefined) ) { 
+    let tokenList="";
+    let comma="";
+    if (hooks.indexOf('useLocation')!=-1)     { tokenList=tokenList+comma+'useLocation'; comma=", "; }
+    if (hooks.indexOf('useHistory')!=-1)      { tokenList=tokenList+comma+'useHistory'; comma=", "; }
+    if (hooks.indexOf('useParams')!=-1)      { tokenList=tokenList+comma+'useParams'; comma=", "; }
+
+    if ((reactSwitch!==undefined) && (reactSwitch===true))     { tokenList=tokenList+comma+'Switch'; comma=", "; }
+    if ((reactRoute!==undefined) && (reactRoute===true))     { tokenList=tokenList+comma+'Route'; comma=", "; }
+    if ((reactLink!==undefined) && (reactLink===true))     { tokenList=tokenList+comma+'Link'; comma=", "; }
+
+    output = output + `import { ${tokenList} } from "react-router-dom";\n`;
+}
+
+if (userBootstrap) {
+    import { Container, Row, Col } from 'react-bootstrap';
+}
+
+let childrenNodes = node.children;
+if (childrenNodes.length>0) {
+    for (let child of childrenNodes) {
+        output = output + `import { ${child.value.name} } from './components/${child.value.name}';\n`;
+    }
+}
+output = output + `import './App.css';\n`;
+output = output + `\n`;
+output = output + `/*==========================================================================================*/\n`;
+
+if (hooks.indexOf('useReducer')!=-1) {
+    output = output + `export const SampleContext = React.createContext(); \n`;
+    output = output + `export const SampleDispatchContext = React.createContext();\n`;
+    output = output + `\n`;
+}
+
+output = output + `
+export const App = (props) => {
+
+`;
+
+if (hooks.indexOf('useLocation')!=-1)
+output = output + ` const location = useLocation();\n`;
+
+if (hooks.indexOf('useHistory')!=-1)
+output = output + ` const history = useHistory();\n`;
+
+if (hooks.indexOf('useParams')!=-1)
+output = output + ` const params = useParams();\n`;
+
+if (hooks.indexOf('useReducer')!=-1) {
+
+output = output + `
+  // This useReducer hook can call local functions to handle the requested actions if necessary
+  function sampleReducer(state, action) {
+
+    switch (action.type) {
+      case 'Case1':
+        return newState;
+      case 'Case2':
+        return newState;
+      case 'Case3':
+          return newState;        
+      default:
+        return newState;
+    }
+  }
+  
+  const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
+
+`;
+
+if (hooks.indexOf('useState')!=-1) {
+    output = output + ' const [formValues, setFormValues] = useState(initialFormValues);\n'
+    output = output + ' const [formError, setFormError] = useState(false);\n'
+    output = output + ' \n'
+}
+
+if (hooks.indexOf('useEffect')!=-1) {
+output = output + 
+`
+    /*==========================================================================================*/
+
+  useEffect( () => {    
+      async function _handleGenericAsync() {
+        try {
+
+        } catch(error) {
+          console.error(error);
+        }
+      }
+    _handleGenericAsync();
+  }
+  ,[]);
+
+  /*==========================================================================================*/
+`;
+}
+
+output=output + 
+`
+  return (
+ 
+    <div className="App">
+`;
+
+if (hooks.indexOf('useReducer')!=-1) {
+output = output + `    <SampleContext.Provider value={sampleState} > \n`;
+output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
+output = output + `\n`;
+}
+
+let childrenNodes = node.children;
+if (childrenNodes.length>0) {
+    for (let child of childrenNodes) {
+        output = output + `<${child.value.name} />\n`;
+    }
+}
+
+if ((reactSwitch!==undefined) && (reactSwitch===true)) {
+    output = output + `        <Switch>\n`;
+}
+if ((reactRoute!==undefined) && (reactRoute===true)) {
+output = output + `
+            <Route path="/login" exact>
+              <SampleComponent />
+            </Route>
+            <Route path="/logout/:id" component={SampleComponent} exact />
+            <Route path="/somepath" render={routeProps => (<Component {...routeProps} />)} />
+            <Route path="/home" render={() => <div>Home</div>} />
+`;
+}
+if ((reactSwitch!==undefined) && (reactSwitch===true)) {
+    output = output + `       </Switch>\n`;
+}
+
+if ((reactLink!==undefined) && (reactLink===true)) {
+    output = output + `        <Link to="/">Home</Link>\n`;
+}
+
+if (hooks.indexOf('useReducer')!=-1) {
+    output = output + `\n`;
+    output = output + `    </SampleDispatchContext.Provider>\n`;
+    output = output + `    </SampleContext.Provider>\n`;
+}
+
+output=output + 
+`
+    </div>
+  );
+`;
+
+}
+
+export default App;
+
+
+}
+
+
+
+/*================================================================================================*/
+
+function output_component(useBootstrap, quickReactElement, node) {
+
+    let output = "";
+    
+    output = output + `import React from 'react';\n`;
+    
+    let hooks=quickReactElement.getAttribute('hooks');
+    if (hooks!==undefined) {
+        let hookTokenList="";
+        let comma="";
+        if (hooks.indexOf('useEffect')!=-1)     { hookTokenList=hookTokenList+comma+'useEffect'; comma=", "; }
+        if (hooks.indexOf('useState')!=-1)      { hookTokenList=hookTokenList+comma+'useState'; comma=", "; }
+        if (hooks.indexOf('useContext')!=-1)    { hookTokenList=hookTokenList+comma+'useContext'; comma=", "; }
+        if (hooks.indexOf('useReducer')!=-1)    { hookTokenList=hookTokenList+comma+'useReducer'; comma=", "; }
+    
+        output = output + `import { ${hooksTokenList} } from 'react';\n`;
+
+        if (hooks.indexOf('useContext')!=-1) {
+            output = output + `//If you are using context exported from another parent component\n`;
+            output = output + `//import { SampleContext } from '../../App';\n`;
+            output = output + `//import { SampleDispatchContext } from '../../App';\n`;
+        }
+    }
+    
+    let reactSwitch=quickReactElement.getAttribute('switch');
+    let reactRoute=quickReactElement.getAttribute('route');
+    let reactLink=quickReactElement.getAttribute('link');
+    
+    if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRouter!==undefined) || (reactLink!==undefined) ) { 
+        let tokenList="";
+        let comma="";
+        if (hooks.indexOf('useLocation')!=-1)     { tokenList=tokenList+comma+'useLocation'; comma=", "; }
+        if (hooks.indexOf('useHistory')!=-1)      { tokenList=tokenList+comma+'useHistory'; comma=", "; }
+        if (hooks.indexOf('useParams')!=-1)      { tokenList=tokenList+comma+'useParams'; comma=", "; }
+    
+        if ((reactSwitch!==undefined) && (reactSwitch===true))     { tokenList=tokenList+comma+'Switch'; comma=", "; }
+        if ((reactRoute!==undefined) && (reactRoute===true))     { tokenList=tokenList+comma+'Route'; comma=", "; }
+        if ((reactLink!==undefined) && (reactLink===true))     { tokenList=tokenList+comma+'Link'; comma=", "; }
+    
+        output = output + `import { ${tokenList} } from "react-router-dom";\n`;
+    }
+    
+    if (userBootstrap) {
+        import { Container, Row, Col } from 'react-bootstrap';
+    }
+    
+    let childrenNodes = node.children;
+    if (childrenNodes.length>0) {
+        for (let child of childrenNodes) {
+            output = output + `import { ${child.value.name} } from './components/${child.value.name}';\n`;
+        }
+    }
+    output = output + `import './App.css';\n`;
+    output = output + `\n`;
+    output = output + `/*==========================================================================================*/\n`;
+    
+    if (hooks.indexOf('useReducer')!=-1) {
+        output = output + `export const SampleContext = React.createContext(); \n`;
+        output = output + `export const SampleDispatchContext = React.createContext();\n`;
+        output = output + `\n`;
+    }
+    
+    let useForm=quickReactElement.getAttribute('form');
+    let useMap=quickReactElement.getAttribute('map');
+
+    output = output + `
+    export const ${quickReactElement.name} = (props) => {
+    
+    `;
+    
+    if (hooks.indexOf('useContext')!=-1) {
+        output = output + `//If you are using context exported from another parent component\n`;
+        output = output + `//const session = useContext(SampleContext);\n`;
+        output = output + `//const dispatch = useContext(SampleDispatchContext);\n`;
+        output = output + `\n`;
+    }
+
+    if (hooks.indexOf('useLocation')!=-1)
+    output = output + ` const location = useLocation();\n`;
+    
+    if (hooks.indexOf('useHistory')!=-1)
+    output = output + ` const history = useHistory();\n`;
+    
+    if (hooks.indexOf('useParams')!=-1)
+    output = output + ` const history = useParams();\n`;
+
+    if (hooks.indexOf('useReducer')!=-1) {
+    
+    output = output + `
+      // This useReducer hook can call local functions to handle the requested actions if necessary
+      function sampleReducer(state, action) {
+    
+        switch (action.type) {
+          case 'Case1':
+            return newState;
+          case 'Case2':
+            return newState;
+          case 'Case3':
+              return newState;        
+          default:
+            return newState;
+        }
+      }
+      
+      const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
+    
+    `;
+    
+
+    if (hooks.indexOf('useState')!=-1) {
+        output = output + ' const [formValues, setFormValues] = useState(initialFormValues);\n'
+        output = output + ' const [formError, setFormError] = useState(false);\n'
+        output = output + ' \n'
+    }
+    
+    if ( (useForm!==undefined) && (useForm===true) ) {
+    output = output + 
+    `
+        // A typical handleChange controlled form handler
+        const _handleChange = (event) => {
+            setFormValues((prevState) => {
+              // console.log(prevState)
+          
+              return {
+                ...prevState,
+                [event.target.id]: event.target.value,
+              };
+            });
+          };
+
+          // A typical onBlur field change validation handler
+          const _handleVerifyForm = (event) => {
+              if (formValues.password !== formValues.confirm_password) {
+                  setFormError(true);
+              } else {
+                  setFormError(false);
+              }     
+          }
+
+          // example handle user registration request via API post
+          
+          const _handleRegistration = async (event) => {
+
+              event.preventDefault();          
+              const API_URI='http://localhost:4000/register';
+          
+              try {
+                  const response = await fetch(API_URI, {
+                      "method": 'POST',
+                      "body": JSON.stringify(formValues),
+                      "headers": {
+                          "Content-Type": 'application/json'
+                      }
+                  });
+          
+                  const data = await response.json();                  
+                  if ( (response.status===200) || (response.status===201) ) {
+                      setFormValues(initialFormValues);
+                  }
+                  else {
+                    console.error('Registration Failed');
+                  }                  
+              } catch(error) {
+                console.error(error);
+              }
+          
+            } 
+                    
+    `;
+    }
+
+    if (hooks.indexOf('useEffect')!=-1) {
+    output = output + 
+    `
+        /*==========================================================================================*/
+    
+      useEffect( () => {    
+          async function _handleGenericAsync() {
+            try {
+    
+            } catch(error) {
+              console.error(error);
+            }
+          }
+        _handleGenericAsync();
+      }
+      ,[]);
+    
+      /*==========================================================================================*/
+    `;
+    }
+    
+    output=output + 
+    `
+      return (
+     
+        <div className="App">
+    `;
+    
+    if (hooks.indexOf('useReducer')!=-1) {
+    output = output + `    <SampleContext.Provider value={sampleState} > \n`;
+    output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
+    output = output + `\n`;
+    }
+    
+    let childrenNodes = node.children;
+    if (childrenNodes.length>0) {
+        for (let child of childrenNodes) {
+            output = output + `<${child.value.name} />\n`;
+        }
+    }
+    
+
+    if ( (useForm!==undefined) && (useForm===true) && (useBootstrap) ) {
+        output = output + 
+        `
+        <>
+        <Form onSubmit={_handleRegistration}>
+
+        <Form.Group className="mb-3" controlId="email">
+        <Form.Label>*Email address</Form.Label>
+        <Form.Control type="email" onChange={_handleChange} value={formValues.email} placeholder="name@example.com" required/>
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="first_name">
+        <Form.Label>*First Name</Form.Label>
+        <Form.Control type="text" onChange={_handleChange} value={formValues.first_name} placeholder="First Name Required" required />
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="last_name">
+        <Form.Label>*Last Name</Form.Label>
+        <Form.Control type="last_name" onChange={_handleChange} value={formValues.last_name} placeholder="Last Name Required" required />
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="password">
+        <Form.Label>*Select Password</Form.Label>
+        <Form.Control type="password" onChange={_handleChange} value={formValues.password} placeholder="Password Required" required />
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="confirm_password">
+        <Form.Label>*Confirm Password</Form.Label>
+        <Form.Control type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues.confirm_password} placeholder="Confirm Password Required" required />
+        </Form.Group>
+        {formError && <Alert variant='danger'>Passwords must match!</Alert>}
+
+        <Button variant="primary" type="submit" disabled={formError}>
+        Submit Registration Form
+        </Button>
+
+        </Form>
+
+        </>
+
+        `;
+    }
+
+    if ( (useForm!==undefined) && (useForm===true) && (!useBootstrap) ) {
+        output = output + 
+        `
+        <form onSubmit={_handleUserLogin}>
+            <div>
+                <label htmlFor='username'>Username: </label>
+                    <input
+                        type='text'
+                        id='username'
+                        value={formValues.username}
+                        onChange={_handleChange}
+                        required
+                    />  
+            </div>
+            <div>
+                <label htmlFor='password'>Password: </label>
+                    <input
+                        type='password'
+                        id='password'
+                        value={formValues.password}
+                        onChange={_handleChange}
+                        required
+                    />
+            </div>
+            <input type='submit' value='Member Login' />
+        </form>
+
+        `;
+    }
+
+    if ( (useMap!==undefined) && (usemap===true) ) {
+        output = output + 
+        `   // Sample array mapping to JSX output
+            {
+                listing.map( (item, index) => {
+                        return (
+                            <div key={index}>
+                                <li>{item.name}</li>
+                            </div>
+                        )
+                    });
+            }
+
+        `;
+    }
+
+    if ((reactSwitch!==undefined) && (reactSwitch===true)) {
+        output = output + `        <Switch>\n`;
+    }
+    if ((reactRoute!==undefined) && (reactRoute===true)) {
+    output = output + `
+                <Route path="/login" exact>
+                  <SampleComponent />
+                </Route>
+                <Route path="/logout/:id" component={SampleComponent} exact />
+                <Route path="/somepath" render={routeProps => (<Component {...routeProps} />)} />
+                <Route path="/home" render={() => <div>Home</div>} />
+    `;
+    }
+    if ((reactSwitch!==undefined) && (reactSwitch===true)) {
+        output = output + `       </Switch>\n`;
+    }
+    
+    if ((reactLink!==undefined) && (reactLink===true)) {
+        output = output + `        <Link to="/">Home</Link>\n`;
+    }
+    
+    if (hooks.indexOf('useReducer')!=-1) {
+        output = output + `\n`;
+        output = output + `    </SampleDispatchContext.Provider>\n`;
+        output = output + `    </SampleContext.Provider>\n`;
+    }
+    
+    output=output + 
+    `
+        </div>
+      );
+      
+    }
+    
+    export default ${quickReactElement.name};
+    
+    `;
+    
+    }
+    
+    /*================================================================================================*/
+    
 
 /*================================================================================================*/
 // Export these library classes to other node modules
