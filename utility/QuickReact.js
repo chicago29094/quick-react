@@ -106,6 +106,7 @@ class QuickReact {
         }
 
         let i=0;
+        let j=0;
         let regex='';
         let codeIndex=0;
         let startIndex=0;
@@ -150,6 +151,7 @@ class QuickReact {
                 // Is this a close tag for a component opening tag/closing tag pair?
                 if (code.charAt(startIndex+1)==='/') {
                     closeComponent=true;
+                    openComponent=false;
                 }
                 // If it isn't a closing tag it is an opening tag.
                 else {
@@ -204,8 +206,9 @@ class QuickReact {
                             currentQuickReactElement.type='component';
 
                             if (selfClosing) currentQuickReactElement.subtype='selfclosingtag';
-                            if (openComponent) currentQuickReactElement.subtype='opentag';
-                            if (closeComponent) currentQuickReactElement.subtype='closetag';
+                            else if (openComponent) currentQuickReactElement.subtype='opentag';
+                            else if (closeComponent) currentQuickReactElement.subtype='closetag';
+                            
                         }
                     }
                     else {
@@ -379,21 +382,25 @@ class QuickReact {
             throw new SyntaxError(`The markup code must include an opening <App> component tag and closing </App> tag.`);
         }
 
+        // for (let i=0; i<quickreactElementArray.length; i++) {
+        //     console.log(`${quickreactElementArray[i].name} ${quickreactElementArray[i].type} ${quickreactElementArray[i].subtype} `);
+        // }
+
         // Every tag that isn't self closing must include a closing tag somewhere in the markup
         for (let i=0; i<quickreactElementArray.length; i++) {
 
             if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].subtype==="opentag") ) {
-                let hasClosingTag=false;
                 // We have located an opentag, now let's check for its matching closing tag
+                let hasClosingTag=false;
                 for (let j=0; j<quickreactElementArray.length; j++) {
-                    if (quickreactElementArray[j].name===quickreactElementArray[i].name) {
+                    if (quickreactElementArray[j].name===`/${quickreactElementArray[i].name}`) {
                         if ( (quickreactElementArray[j].type==="component") && (quickreactElementArray[j].subtype==="closetag") ) {
                             hasClosingTag=true;
                         }
                     }
                 }
                 if (!hasClosingTag) {
-                    throw new SyntaxError(`All components in the Quick-React markup, which are not self-closing, must include a matching closing tag.  Please include a closing tag: </${quickreactElementArray[j].name}> for the ${quickreactElementArray[j].name} component.`);
+                    throw new SyntaxError(`All components in the Quick-React markup, which are not self-closing, must include a matching closing tag.  Please include a closing tag: </${quickreactElementArray[i].name}> for the ${quickreactElementArray[i].name} component.`);
                 }
             }
         }
