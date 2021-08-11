@@ -14,8 +14,11 @@ const markup =
 <App>
     <Children hooks=useEffect, useChildren />
     <Header>
+        <Navigation />
+    </Header>
     <Main form input='text*3, textarea, checkbox*4, password'>
     </Main>
+    <Footer />
 </App>
 `;
 
@@ -32,13 +35,15 @@ const markup =
     /*============================================================================*/
 
     describe('QuickReact Parsing', function() {
-        it('parseMarkup with a blank file should return an empty n-ary tree ', function() {
+        it('parseMarkup size with test markup should be 8 ', function() {
             const quickReact = new QuickReact();
             const tree = quickReact.parseMarkup(markup);
 
+            console.log(tree.toString() );
+
             expect(tree).to.be.a('object');
             expect(tree).to.be.an.instanceof(NaryTree);
-            expect(tree.size()).to.be.equal(0);
+            expect(tree.size()).to.be.equal(8);
         });
     });
 
