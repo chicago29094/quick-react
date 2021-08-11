@@ -22,7 +22,8 @@ app.use('/api', userController);
 const projectController = require('./controllers/project');
 app.use('/project', projectController);
 
-app.listen(PORT, () => {
-    console.log('Listening on port:', PORT);
-})
+app.set("port", process.env.PORT || 4000);
 
+app.listen(app.get("port"), () => {
+  console.log(`✅ PORT: ${app.get("port")} 🌟`);
+});
