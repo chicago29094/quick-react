@@ -14,6 +14,7 @@
     "passport-jwt": "^4.0.0"
   },
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon --ignore projects/ server.js",
     "test": "mocha"
   },
