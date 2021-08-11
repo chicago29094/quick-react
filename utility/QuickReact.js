@@ -3,6 +3,7 @@ const {NaryNode, NaryTree} = require('./NaryTree');
 const quickReactTemplates = require('./QuickReactTemplates');
 const fs = require('fs');
 const path = require('path');
+var AdmZip = require('adm-zip');
 
 /*================================================================================================*/
 // Quick-React elements are an object type where each element has an assigned type, name, and a 
@@ -525,7 +526,9 @@ class QuickReact {
 
 
         const userDirectory = path.join(__dirname, '..', '..', 'project', userID);
-        const projectDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID)
+        const zipDirectory = path.join(__dirname, '..', '..', 'project', userID, 'ziparchives');
+        const zipFilepath = path.join(__dirname, '..', '..', 'project', userID, 'ziparchives', `${projectID}.zip`);
+        const projectDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID)        
         const componentsDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "components")
         const imagesDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "images")
         const assetsDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "assets")
@@ -534,6 +537,9 @@ class QuickReact {
             if (!fs.existsSync(userDirectory)) {
                 fs.mkdirSync(userDirectory);
             }
+            if (!fs.existsSync(zipDirectory)) {
+                fs.mkdirSync(zipDirectory);
+            }            
             if (!fs.existsSync(projectDirectory)) {
                 fs.mkdirSync(projectDirectory);
             }
@@ -564,19 +570,65 @@ class QuickReact {
             if ( quickReactElement.name==='Config') {
                 // Use the config node as an opportunity to create an index_qr.js file
                 document = "";
-                document = document + output_index(useBoostrap, quickReactElement, node);               
+                document = document + output_index(useBootstrap, quickReactElement, node);     
+                
+                let indexFilepath = path.join(projectDirectory, 'index_qr.js');
 
+                try {
+                    const data = fs.writeFileSync(indexFilepath, document);
+                    //file written successfully
+                  } catch (error) {
+                    console.error(error)
+                  }
             }
             else if ( quickReactElement.name==='App') {
                 document = "";
-                document = document + output_app(useBoostrap, quickReactElement, node);                 
+                document = document + output_app(useBootstrap, quickReactElement, node);                 
+
+                let appFilepath = path.join(projectDirectory, 'App_qr.js')
+
+                try {
+                    const data = fs.writeFileSync(appFilepath, document);
+                    //file written successfully
+                  } catch (error) {
+                    console.error(error)
+                  }
             }
             else if ( quickReactElement.type==='component') {
                 document = "";
-                document = document + output_component(useBoostrap, quickReactElement, node);                 
+                document = document + output_component(useBootstrap, quickReactElement, node);      
+
+                let componentDirectory = path.join(projectDirectory, 'components', `${quickReactElement.name}`);
+                
+                try {
+                    if (!fs.existsSync(componentDirectory)) {
+                        fs.mkdirSync(componentDirectory);
+                    }        
+                } catch (error) {
+                    console.log(error);
+                }
+        
+                let componentFilepath = path.join(projectDirectory, 'components', `${quickReactElement.name}`, 'index.js');
+
+                try {
+                    const data = fs.writeFileSync(componentFilepath, document);
+                    //file written successfully
+                  } catch (error) {
+                    console.error(error)
+                  }                
+
             }
         }
 
+        // Create a ZIP archive of the project directories and files
+        const file = new AdmZip();
+        file.addLocalFolder(projectDirectory, 'project');
+        try {
+            file.writeZip(zipFilepath);
+        }
+        catch(error) {
+            console.log(error);
+        }
     }
 
 }
@@ -598,7 +650,7 @@ output = output +
 `;
 }
 
-if (useBoostrap) {
+if (useBootstrap) {
 import 'bootstrap/dist/css/bootstrap.min.css';
 }
 

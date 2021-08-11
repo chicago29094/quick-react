@@ -38,8 +38,23 @@ const markup =
         it('parseMarkup size with test markup should be 8 ', function() {
             const quickReact = new QuickReact();
             const tree = quickReact.parseMarkup(markup);
+            generateProjectFiles(userID, projectID, tree) {
 
             console.log(tree.toString() );
+
+            expect(tree).to.be.a('object');
+            expect(tree).to.be.an.instanceof(NaryTree);
+            expect(tree.size()).to.be.equal(8);
+        });
+    });
+
+    /*============================================================================*/
+
+    describe('QuickReact File Generation and ZIP Archiving', function() {
+        it('parseMarkup size with test markup should be 8 ', function() {
+            const quickReact = new QuickReact();
+            const tree = quickReact.parseMarkup(markup);
+            generateProjectFiles('123456', '5551212', tree);
 
             expect(tree).to.be.a('object');
             expect(tree).to.be.an.instanceof(NaryTree);
