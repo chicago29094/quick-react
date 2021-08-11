@@ -1,6 +1,5 @@
 
 const {NaryNode, NaryTree} = require('./NaryTree');
-const quickReactTemplates = require('./QuickReactTemplates');
 const fs = require('fs');
 const path = require('path');
 var AdmZip = require('adm-zip');
@@ -165,13 +164,17 @@ class QuickReact {
 
         // First we will lex the markup and parse it into quick-react object elements
         outer: while (codeIndex<end) {
-
             if (!inComponent) {
                 startIndex=code.indexOf('<', codeIndex);
+                endIndex=code.indexOf('>', codeIndex);
+
+                if ( (startIndex===-1) && (endIndex===-1) ) {
+                    break outer;
+                }
+
                 if (startIndex===-1) {
                     throw new SyntaxError(`The markup code is missing an opening '<' character.  ${this._printRef(code, codeIndex, 80)}`);
                 }
-                endIndex=code.indexOf('>', codeIndex);
                 if (endIndex===-1) {
                     throw new SyntaxError(`The markup code is missing a closing '>' character. ${this._printRef(code, startIndex, 80)} `);
                 }
@@ -222,11 +225,15 @@ class QuickReact {
                 currentQuickReactElement=new QuickReactElement('', '');
 
                 for (let attribute of componentAttributes) {
-                    if (tokenIndex===0) {({})
+                    if (tokenIndex===0) {
                         if (attribute==='Config') {
                             currentQuickReactElement.name='Config';
                             currentQuickReactElement.type='config';
                             configComponent=true;
+
+                            if (selfClosing) currentQuickReactElement.subtype='selfclosingtag';
+                            else if (openComponent) currentQuickReactElement.subtype='opentag';
+                            else if (closeComponent) currentQuickReactElement.subtype='closetag';                            
                         }
                         else {
                             configComponent=false;
@@ -236,7 +243,6 @@ class QuickReact {
                             if (selfClosing) currentQuickReactElement.subtype='selfclosingtag';
                             else if (openComponent) currentQuickReactElement.subtype='opentag';
                             else if (closeComponent) currentQuickReactElement.subtype='closetag';
-                            
                         }
                     }
                     else {
@@ -479,7 +485,9 @@ class QuickReact {
                 parentComponentNode=this._tree.getNode(parentQuickReactElement);
                 quickReactElementStack.push(parentQuickReactElement);
                 quickReactElementStack.push(quickreactElementArray[i]);
-                this._tree.addAsLastChild(quickreactElementArray[i], parentComponentNode);
+                if (parentComponentNode.value!==quickreactElementArray[i]) {
+                    this._tree.addAsLastChild(quickreactElementArray[i], parentComponentNode);
+                }
             }
             else if ( (quickreactElementArray[i].type==="component") && (quickreactElementArray[i].subtype==="selfclosingtag") ) {
                 parentQuickReactElement=quickReactElementStack.pop();
@@ -525,13 +533,21 @@ class QuickReact {
         }
 
 
-        const userDirectory = path.join(__dirname, '..', '..', 'project', userID);
-        const zipDirectory = path.join(__dirname, '..', '..', 'project', userID, 'ziparchives');
-        const zipFilepath = path.join(__dirname, '..', '..', 'project', userID, 'ziparchives', `${projectID}.zip`);
-        const projectDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID)        
-        const componentsDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "components")
-        const imagesDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "images")
-        const assetsDirectory = path.join(__dirname, '..', '..', 'project', userID, projectID, "assets")
+        const userDirectory = path.join(__dirname, '..', 'projects', userID);
+        const zipDirectory = path.join(__dirname, '..', 'projects', userID, 'ziparchives');
+        const zipFilepath = path.join(__dirname, '..', 'projects', userID, 'ziparchives', `${projectID}.zip`);
+        const projectDirectory = path.join(__dirname, '..', 'projects', userID, projectID)        
+        const componentsDirectory = path.join(__dirname, '..', 'projects', userID, projectID, "components")
+        const imagesDirectory = path.join(__dirname, '..', 'projects', userID, projectID, "images")
+        const assetsDirectory = path.join(__dirname, '..', 'projects', userID, projectID, "assets")
+
+        // console.log(userDirectory);
+        // console.log(zipDirectory);
+        // console.log(zipFilepath);
+        // console.log(projectDirectory);
+        // console.log(componentsDirectory);
+        // console.log(imagesDirectory);
+        // console.log(assetsDirectory);
 
         try {
             if (!fs.existsSync(userDirectory)) {
@@ -559,7 +575,7 @@ class QuickReact {
 
         // Next, we will iterate through the entire n-ary tree, representing our Quick-React project and create folders, files, and settings component-by-component
 
-        const treeIterator = tree.levelOrderIterator(rootNode);
+        const treeIterator = tree.levelOrderIterator(tree.root);
 
         for (let node of treeIterator) {
 
@@ -651,7 +667,9 @@ output = output +
 }
 
 if (useBootstrap) {
-import 'bootstrap/dist/css/bootstrap.min.css';
+output = output + 
+`import 'bootstrap/dist/css/bootstrap.min.css';
+`;
 }
 
 output = output + 
@@ -717,7 +735,7 @@ let reactSwitch=quickReactElement.getAttribute('switch');
 let reactRoute=quickReactElement.getAttribute('route');
 let reactLink=quickReactElement.getAttribute('link');
 
-if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRouter!==undefined) || (reactLink!==undefined) ) { 
+if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRoute!==undefined) || (reactLink!==undefined) ) { 
     let tokenList="";
     let comma="";
     if (hooks.indexOf('useLocation')!=-1)     { tokenList=tokenList+comma+'useLocation'; comma=", "; }
@@ -731,8 +749,8 @@ if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRouter!==undefine
     output = output + `import { ${tokenList} } from "react-router-dom";\n`;
 }
 
-if (userBootstrap) {
-    import { Container, Row, Col } from 'react-bootstrap';
+if (useBootstrap) {
+output = output + `import { Container, Row, Col } from 'react-bootstrap';\n`;
 }
 
 let childrenNodes = node.children;
@@ -745,7 +763,7 @@ output = output + `import './App.css';\n`;
 output = output + `\n`;
 output = output + `/*==========================================================================================*/\n`;
 
-if (hooks.indexOf('useReducer')!=-1) {
+if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
     output = output + `export const SampleContext = React.createContext(); \n`;
     output = output + `export const SampleDispatchContext = React.createContext();\n`;
     output = output + `\n`;
@@ -756,16 +774,16 @@ export const App = (props) => {
 
 `;
 
-if (hooks.indexOf('useLocation')!=-1)
+if ( (hooks!==undefined) && (hooks.indexOf('useLocation')!=-1) )
 output = output + ` const location = useLocation();\n`;
 
-if (hooks.indexOf('useHistory')!=-1)
+if ( (hooks!==undefined) && (hooks.indexOf('useHistory')!=-1) )
 output = output + ` const history = useHistory();\n`;
 
-if (hooks.indexOf('useParams')!=-1)
+if ( (hooks!==undefined) && (hooks.indexOf('useParams')!=-1) )
 output = output + ` const params = useParams();\n`;
 
-if (hooks.indexOf('useReducer')!=-1) {
+if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
 output = output + `
   // This useReducer hook can call local functions to handle the requested actions if necessary
@@ -786,14 +804,15 @@ output = output + `
   const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
 
 `;
+}
 
-if (hooks.indexOf('useState')!=-1) {
+if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) ) {
     output = output + ' const [formValues, setFormValues] = useState(initialFormValues);\n'
     output = output + ' const [formError, setFormError] = useState(false);\n'
     output = output + ' \n'
 }
 
-if (hooks.indexOf('useEffect')!=-1) {
+if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
 output = output + 
 `
     /*==========================================================================================*/
@@ -821,18 +840,21 @@ output=output +
     <div className="App">
 `;
 
-if (hooks.indexOf('useReducer')!=-1) {
+if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 output = output + `    <SampleContext.Provider value={sampleState} > \n`;
 output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
 output = output + `\n`;
 }
 
-let childrenNodes = node.children;
+
+
+childrenNodes = node.children;
 if (childrenNodes.length>0) {
     for (let child of childrenNodes) {
         output = output + `<${child.value.name} />\n`;
     }
 }
+
 
 if ((reactSwitch!==undefined) && (reactSwitch===true)) {
     output = output + `        <Switch>\n`;
@@ -855,7 +877,7 @@ if ((reactLink!==undefined) && (reactLink===true)) {
     output = output + `        <Link to="/">Home</Link>\n`;
 }
 
-if (hooks.indexOf('useReducer')!=-1) {
+if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
     output = output + `\n`;
     output = output + `    </SampleDispatchContext.Provider>\n`;
     output = output + `    </SampleContext.Provider>\n`;
@@ -865,12 +887,14 @@ output=output +
 `
     </div>
   );
-`;
 
 }
 
 export default App;
 
+`;
+
+return output;
 
 }
 
@@ -893,7 +917,7 @@ function output_component(useBootstrap, quickReactElement, node) {
         if (hooks.indexOf('useContext')!=-1)    { hookTokenList=hookTokenList+comma+'useContext'; comma=", "; }
         if (hooks.indexOf('useReducer')!=-1)    { hookTokenList=hookTokenList+comma+'useReducer'; comma=", "; }
     
-        output = output + `import { ${hooksTokenList} } from 'react';\n`;
+        output = output + `import { ${hookTokenList} } from 'react';\n`;
 
         if (hooks.indexOf('useContext')!=-1) {
             output = output + `//If you are using context exported from another parent component\n`;
@@ -906,7 +930,7 @@ function output_component(useBootstrap, quickReactElement, node) {
     let reactRoute=quickReactElement.getAttribute('route');
     let reactLink=quickReactElement.getAttribute('link');
     
-    if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRouter!==undefined) || (reactLink!==undefined) ) { 
+    if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRoute!==undefined) || (reactLink!==undefined) ) { 
         let tokenList="";
         let comma="";
         if (hooks.indexOf('useLocation')!=-1)     { tokenList=tokenList+comma+'useLocation'; comma=", "; }
@@ -920,8 +944,8 @@ function output_component(useBootstrap, quickReactElement, node) {
         output = output + `import { ${tokenList} } from "react-router-dom";\n`;
     }
     
-    if (userBootstrap) {
-        import { Container, Row, Col } from 'react-bootstrap';
+    if (useBootstrap) {
+        output = output + `import { Container, Row, Col } from 'react-bootstrap';\n`;
     }
     
     let childrenNodes = node.children;
@@ -934,7 +958,7 @@ function output_component(useBootstrap, quickReactElement, node) {
     output = output + `\n`;
     output = output + `/*==========================================================================================*/\n`;
     
-    if (hooks.indexOf('useReducer')!=-1) {
+    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
         output = output + `export const SampleContext = React.createContext(); \n`;
         output = output + `export const SampleDispatchContext = React.createContext();\n`;
         output = output + `\n`;
@@ -948,23 +972,23 @@ function output_component(useBootstrap, quickReactElement, node) {
     
     `;
     
-    if (hooks.indexOf('useContext')!=-1) {
+    if ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) ) {
         output = output + `//If you are using context exported from another parent component\n`;
         output = output + `//const session = useContext(SampleContext);\n`;
         output = output + `//const dispatch = useContext(SampleDispatchContext);\n`;
         output = output + `\n`;
     }
 
-    if (hooks.indexOf('useLocation')!=-1)
+    if ( (hooks!==undefined) && (hooks.indexOf('useLocation')!=-1) )
     output = output + ` const location = useLocation();\n`;
     
-    if (hooks.indexOf('useHistory')!=-1)
+    if ( (hooks!==undefined) && (hooks.indexOf('useHistory')!=-1) )
     output = output + ` const history = useHistory();\n`;
     
-    if (hooks.indexOf('useParams')!=-1)
+    if ( (hooks!==undefined) && (hooks.indexOf('useParams')!=-1) )
     output = output + ` const history = useParams();\n`;
 
-    if (hooks.indexOf('useReducer')!=-1) {
+    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
     
     output = output + `
       // This useReducer hook can call local functions to handle the requested actions if necessary
@@ -985,9 +1009,10 @@ function output_component(useBootstrap, quickReactElement, node) {
       const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
     
     `;
-    
+    }
 
-    if (hooks.indexOf('useState')!=-1) {
+
+    if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) ) {
         output = output + ' const [formValues, setFormValues] = useState(initialFormValues);\n'
         output = output + ' const [formError, setFormError] = useState(false);\n'
         output = output + ' \n'
@@ -1049,7 +1074,7 @@ function output_component(useBootstrap, quickReactElement, node) {
     `;
     }
 
-    if (hooks.indexOf('useEffect')!=-1) {
+    if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
     output = output + 
     `
         /*==========================================================================================*/
@@ -1077,13 +1102,13 @@ function output_component(useBootstrap, quickReactElement, node) {
         <div className="App">
     `;
     
-    if (hooks.indexOf('useReducer')!=-1) {
+    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
     output = output + `    <SampleContext.Provider value={sampleState} > \n`;
     output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
     output = output + `\n`;
     }
     
-    let childrenNodes = node.children;
+    childrenNodes = node.children;
     if (childrenNodes.length>0) {
         for (let child of childrenNodes) {
             output = output + `<${child.value.name} />\n`;
@@ -1201,7 +1226,7 @@ function output_component(useBootstrap, quickReactElement, node) {
         output = output + `        <Link to="/">Home</Link>\n`;
     }
     
-    if (hooks.indexOf('useReducer')!=-1) {
+    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
         output = output + `\n`;
         output = output + `    </SampleDispatchContext.Provider>\n`;
         output = output + `    </SampleContext.Provider>\n`;
@@ -1218,10 +1243,10 @@ function output_component(useBootstrap, quickReactElement, node) {
     
     `;
     
-    }
-    
-    /*================================================================================================*/
-    
+    return output;
+
+}
+        
 
 /*================================================================================================*/
 // Export these library classes to other node modules

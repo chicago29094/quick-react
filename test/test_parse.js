@@ -11,8 +11,9 @@ describe('QuickReact Class Library', function() {
 
 const markup = 
 `
+<Config react-bootstrap />
 <App>
-    <Children hooks=useEffect, useChildren />
+    <Children hooks=useEffect, useContext />
     <Header>
         <Navigation />
     </Header>
@@ -20,6 +21,7 @@ const markup =
     </Main>
     <Footer />
 </App>
+
 `;
 
     /*============================================================================*/
@@ -38,13 +40,12 @@ const markup =
         it('parseMarkup size with test markup should be 8 ', function() {
             const quickReact = new QuickReact();
             const tree = quickReact.parseMarkup(markup);
-            generateProjectFiles(userID, projectID, tree) {
 
             console.log(tree.toString() );
 
             expect(tree).to.be.a('object');
             expect(tree).to.be.an.instanceof(NaryTree);
-            expect(tree.size()).to.be.equal(8);
+            expect(tree.size()).to.be.equal(7);
         });
     });
 
@@ -54,11 +55,11 @@ const markup =
         it('parseMarkup size with test markup should be 8 ', function() {
             const quickReact = new QuickReact();
             const tree = quickReact.parseMarkup(markup);
-            generateProjectFiles('123456', '5551212', tree);
+            quickReact.generateProjectFiles('123456', '5551212', tree);
 
             expect(tree).to.be.a('object');
             expect(tree).to.be.an.instanceof(NaryTree);
-            expect(tree.size()).to.be.equal(8);
+            expect(tree.size()).to.be.equal(7);
         });
     });
 
