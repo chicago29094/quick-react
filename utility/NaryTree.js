@@ -208,6 +208,47 @@ class NaryTree {
     }
 
     /*================================================================================================*/
+    // In no object parameter is specified, return the root node object
+    // In an object is specified, get returns the first occurrence of the specified object using a level-order tree traversal iterator.
+    getByObjectPropery( obj ) {
+
+        if ( (obj===undefined) || (obj===null) ) {
+            return this._root.value;
+        }
+
+        const [key,value] = Object.entries(obj)[0];
+
+        const treeIterator = this.levelOrderIterator(this._root);
+
+        for (let node of treeIterator) {
+            if ( (node.value[key]!==undefined) && (node.value[key]===value) ) {
+                return node.value;
+            }
+        }
+        return null;
+    }
+
+    /*================================================================================================*/
+    // getNode returns the n-ary tree node reference for the first occurrence of the specified object passed as an argument to the method.
+    getNodeByObjectProperty( obj ) {
+
+        if ( (obj===undefined) || (obj===null) ) {
+            return this._root;
+        }
+
+        const [key,value] = Object.entries(obj)[0];
+
+        const treeIterator = this.levelOrderIterator(this._root);
+
+        for (let node of treeIterator) {
+            if ( (node.value[key]!==undefined) && (node.value[key]===value) ) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    /*================================================================================================*/
     // returns the object in the root node of the tree
     getRootItem() {
         return this._root.value;
@@ -621,7 +662,7 @@ class NaryTree {
         }
 
         const leftMargin = " ".repeat(relLevel*6);
-        str=str + leftMargin + `Level:${relLevel} - ${node.value.nodeNum} \n`;
+        str=str + leftMargin + `Level:${relLevel} - ${node.value} \n`;
         for (let child of node.children) {
             str=str+this.toString(child, relLevel+1);
         }
@@ -676,6 +717,7 @@ class NaryTree {
     }
 
 }
+
 
 /*================================================================================================*/
 // Export these library classes to other node modules
