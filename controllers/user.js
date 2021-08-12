@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../models/User');
+const User = require('../models/user');
 const bcrypt = require('bcrypt');
 // Require the createUserToken method
 const { createUserToken, requireToken } = require('../middleware/auth');

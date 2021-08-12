@@ -17,7 +17,7 @@ const opts = {
 };
 
 // Require the user model
-const User = require('../models/User');
+const User = require('../models/user');
 
 // We're configuring the strategy using the constructor from passport
 // so we call new and pass in the options we set in the `opts` variable.
