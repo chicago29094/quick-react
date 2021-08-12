@@ -63,6 +63,7 @@ class QuickReactElement {
     }
 
     // Safely Check to see if the Quick-React element has a specific attribute key set to a specific value
+    // This method does not return undefined for undefined properties, it always returns a boolean true or false value
     safeHasAttribute(obj) {
         const [key, value] = Object.entries(obj)[0];
 
@@ -100,7 +101,7 @@ class QuickReactElement {
         return this._attributes.set(key, value);
     }
 
-    // Returns all key/valye pairs as an array using the spread operator
+    // Returns all key/value pairs as an array using the spread operator
     getAllAttributes() {
         return([...this._attributes]);
     }
@@ -418,7 +419,6 @@ class QuickReact {
         }
 
         // Now that we have all of the quick-react elements in an array, we will construct our n-ary tree based on the nested structure of the component tags
- 
         // A "Config" configuration Quick-React element object will be stored in our root node
         let hasConfig=false;
         for (let i=0; i<quickreactElementArray.length; i++) {
@@ -695,11 +695,9 @@ reportWebVitals();
 else {
 output = output + 
 `ReactDOM.render(
-<Router>
     <React.StrictMode>
         <App />
     </React.StrictMode>
-</Router>,
 document.getElementById('root')
 );
 
@@ -763,7 +761,10 @@ output = output + `import './App.css';\n`;
 output = output + `\n`;
 output = output + `/*==========================================================================================*/\n`;
 
-if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
+if ( 
+    ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) || 
+    ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) ) 
+    ) {
     output = output + `export const SampleContext = React.createContext(); \n`;
     output = output + `export const SampleDispatchContext = React.createContext();\n`;
     output = output + `\n`;
@@ -786,6 +787,7 @@ output = output + ` const params = useParams();\n`;
 if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
 output = output + `
+  
   // This useReducer hook can call local functions to handle the requested actions if necessary
   function sampleReducer(state, action) {
 
@@ -801,6 +803,13 @@ output = output + `
     }
   }
   
+  // sample initialState
+  const initialState {
+    user: "",
+    password: "",
+    loggedin: false,
+  }
+
   const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
 
 `;
@@ -815,8 +824,10 @@ if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) ) {
 if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
 output = output + 
 `
-    /*==========================================================================================*/
+  /*==========================================================================================*/
 
+  // Preferred method formatting of placing async function calls inside the useEffect as an 
+  // anonymous function
   useEffect( () => {    
       async function _handleGenericAsync() {
         try {
@@ -840,18 +851,20 @@ output=output +
     <div className="App">
 `;
 
-if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
+if ( 
+    ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ||  
+    ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))   
+    ) {
 output = output + `    <SampleContext.Provider value={sampleState} > \n`;
 output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
 output = output + `\n`;
 }
 
 
-
 childrenNodes = node.children;
 if (childrenNodes.length>0) {
     for (let child of childrenNodes) {
-        output = output + `<${child.value.name} />\n`;
+        output = output + `     <${child.value.name} />\n`;
     }
 }
 
@@ -861,8 +874,9 @@ if ((reactSwitch!==undefined) && (reactSwitch===true)) {
 }
 if ((reactRoute!==undefined) && (reactRoute===true)) {
 output = output + `
+            // Sample Route Variations
             <Route path="/login" exact>
-              <SampleComponent />
+                <SampleComponent />
             </Route>
             <Route path="/logout/:id" component={SampleComponent} exact />
             <Route path="/somepath" render={routeProps => (<Component {...routeProps} />)} />
@@ -951,14 +965,17 @@ function output_component(useBootstrap, quickReactElement, node) {
     let childrenNodes = node.children;
     if (childrenNodes.length>0) {
         for (let child of childrenNodes) {
-            output = output + `import { ${child.value.name} } from './components/${child.value.name}';\n`;
+            output = output + `import { ${child.value.name} } from '../${child.value.name}';\n`;
         }
     }
     output = output + `import './App.css';\n`;
     output = output + `\n`;
     output = output + `/*==========================================================================================*/\n`;
     
-    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
+    if ( 
+            ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) || 
+            ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) 
+            ) {
         output = output + `export const SampleContext = React.createContext(); \n`;
         output = output + `export const SampleDispatchContext = React.createContext();\n`;
         output = output + `\n`;
@@ -989,26 +1006,34 @@ function output_component(useBootstrap, quickReactElement, node) {
     output = output + ` const history = useParams();\n`;
 
     if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
-    
-    output = output + `
-      // This useReducer hook can call local functions to handle the requested actions if necessary
-      function sampleReducer(state, action) {
-    
-        switch (action.type) {
-          case 'Case1':
-            return newState;
-          case 'Case2':
-            return newState;
-          case 'Case3':
-              return newState;        
-          default:
-            return newState;
-        }
-      }
-      
-      const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
-    
-    `;
+
+        output = output + `
+          
+          // This useReducer hook can call local functions to handle the requested actions if necessary
+          function sampleReducer(state, action) {
+        
+            switch (action.type) {
+              case 'Case1':
+                return newState;
+              case 'Case2':
+                return newState;
+              case 'Case3':
+                  return newState;        
+              default:
+                return newState;
+            }
+          }
+          
+          // sample initialState
+          const initialState {
+            user: "",
+            password: "",
+            loggedin: false,
+          }
+        
+          const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
+        
+        `;
     }
 
 
@@ -1021,11 +1046,10 @@ function output_component(useBootstrap, quickReactElement, node) {
     if ( (useForm!==undefined) && (useForm===true) ) {
     output = output + 
     `
-        // A typical handleChange controlled form handler
+        // A typical _handleChange controlled form field handler
         const _handleChange = (event) => {
             setFormValues((prevState) => {
               // console.log(prevState)
-          
               return {
                 ...prevState,
                 [event.target.id]: event.target.value,
@@ -1033,7 +1057,7 @@ function output_component(useBootstrap, quickReactElement, node) {
             });
           };
 
-          // A typical onBlur field change validation handler
+          // A typical onBlur form field change validation handler
           const _handleVerifyForm = (event) => {
               if (formValues.password !== formValues.confirm_password) {
                   setFormError(true);
@@ -1102,7 +1126,10 @@ function output_component(useBootstrap, quickReactElement, node) {
         <div className="App">
     `;
     
-    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
+    if ( 
+            ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) || 
+            ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))     
+        ) {
     output = output + `    <SampleContext.Provider value={sampleState} > \n`;
     output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
     output = output + `\n`;
@@ -1191,7 +1218,8 @@ function output_component(useBootstrap, quickReactElement, node) {
 
     if ( (useMap!==undefined) && (usemap===true) ) {
         output = output + 
-        `   // Sample array mapping to JSX output
+        `
+            // Sample array value mapping to JSX per-item output
             {
                 listing.map( (item, index) => {
                         return (
@@ -1208,6 +1236,7 @@ function output_component(useBootstrap, quickReactElement, node) {
     if ((reactSwitch!==undefined) && (reactSwitch===true)) {
         output = output + `        <Switch>\n`;
     }
+
     if ((reactRoute!==undefined) && (reactRoute===true)) {
     output = output + `
                 <Route path="/login" exact>
@@ -1218,6 +1247,7 @@ function output_component(useBootstrap, quickReactElement, node) {
                 <Route path="/home" render={() => <div>Home</div>} />
     `;
     }
+
     if ((reactSwitch!==undefined) && (reactSwitch===true)) {
         output = output + `       </Switch>\n`;
     }
@@ -1226,10 +1256,14 @@ function output_component(useBootstrap, quickReactElement, node) {
         output = output + `        <Link to="/">Home</Link>\n`;
     }
     
-    if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
+    if ( 
+            ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ||
+            ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) 
+        ) {
         output = output + `\n`;
         output = output + `    </SampleDispatchContext.Provider>\n`;
         output = output + `    </SampleContext.Provider>\n`;
+
     }
     
     output=output + 
