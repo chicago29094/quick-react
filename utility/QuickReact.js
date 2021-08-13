@@ -1,8 +1,9 @@
-
+import 'core-js/features/array/flat';
 const {NaryNode, NaryTree} = require('./NaryTree');
 const fs = require('fs');
 const path = require('path');
 var AdmZip = require('adm-zip');
+
 
 /*================================================================================================*/
 // Quick-React elements are an object type where each element has an assigned type, name, and a 
@@ -206,15 +207,15 @@ class QuickReact {
 
                 // Remove spaces around comma separated lists so split lexical tokenization can work better
                 regex = /\s+,\s+|\s+,|,\s+/g
-                normalizedComponent = component.replaceAll(regex, ',');
+                normalizedComponent = component.replace(regex, ',');
                 component=normalizedComponent;
                 // Remove single and double quotes around component attributes to ease further lexing and  subsequent parsing
                 regex = /\'|\"/g
-                normalizedComponent = component.replaceAll(regex, '');
+                normalizedComponent = component.replace(regex, '');
                 component=normalizedComponent;
                 // Inside components collapse multiple spaces into a single space
                 regex = /\s+/g
-                normalizedComponent = component.replaceAll(regex, ' ');
+                normalizedComponent = component.replace(regex, ' ');
                 component=normalizedComponent;
                 // Trim leading and trailing spaces from the component
                 normalizedComponent = component.trim();
