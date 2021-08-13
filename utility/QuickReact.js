@@ -1,4 +1,3 @@
-import 'core-js/features/array/flat';
 const {NaryNode, NaryTree} = require('./NaryTree');
 const fs = require('fs');
 const path = require('path');
