@@ -9,7 +9,7 @@ import './App.css';
     
       return (
      
-        <div className="App">
+        <div className="navigation-container">
     
         </div>
       );

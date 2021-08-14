@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Navigation } from './components/Navigation';
+import { Navigation } from '../Navigation';
 import './App.css';
 
 /*==========================================================================================*/
@@ -10,9 +10,8 @@ import './App.css';
     
       return (
      
-        <div className="App">
-    <Navigation />
-
+        <div className="header-container">
+    
         </div>
       );
       

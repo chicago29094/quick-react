@@ -8,6 +8,8 @@ import { Container, Row, Col } from 'react-bootstrap';
 import './App.css';
 
 /*==========================================================================================*/
+export const SampleContext1 = React.createContext(); 
+
 
     export const Children = (props) => {
     
@@ -16,26 +18,28 @@ import './App.css';
 //const dispatch = useContext(SampleDispatchContext);
 
 
-        /*==========================================================================================*/
-    
-      useEffect( () => {    
-          async function _handleGenericAsync() {
-            try {
-    
-            } catch(error) {
-              console.error(error);
-            }
+          /*==========================================================================================*/
+          // Preferred method formatting of placing async function calls inside the useEffect as an 
+          // anonymous function
+          useEffect( () => {    
+              async function _handleGenericAsync1() {
+                try {
+        
+                } catch(error) {
+                  console.error(error);
+                }
+              }
+            _handleGenericAsync1();
           }
-        _handleGenericAsync();
-      }
-      ,[]);
-    
-      /*==========================================================================================*/
-    
+          ,[]);
+          /*==========================================================================================*/
+        
       return (
      
-        <div className="App">
-    
+        <div className="children-container">
+        <SampleContext1.Provider value={sampleState1} > 
+    </SampleContext1.Provider>
+
         </div>
       );
       
