@@ -2,7 +2,7 @@ const assert = require('assert');
 const should = require('chai').should();
 const expect = require('chai').expect;
 const {NaryNode, NaryTree} = require('../utility/NaryTree');
-const {QuickReactElement, QuickReact} = require('../utility/QuickReact');
+const {QuickReactElement, QuickReact, } = require('../utility/QuickReact');
 
 
 /*============================================================================*/
@@ -13,11 +13,12 @@ const markup =
 `
 <Config react-bootstrap />
 <App>
-    <Children hooks=useEffect, useContext />
+    <Children hooks='useEffect,useContext*44,useState*3' />
     <Header>
         <Navigation />
     </Header>
-    <Main form input='text*3, textarea, checkbox*4, password'>
+    <Main form forminputs='text*3, textarea*2, checkbox*4, password'>
+        <Resume form userReducer useContext />
     </Main>
     <Footer />
 </App>
@@ -45,7 +46,7 @@ const markup =
 
             expect(tree).to.be.a('object');
             expect(tree).to.be.an.instanceof(NaryTree);
-            expect(tree.size()).to.be.equal(7);
+            expect(tree.size()).to.be.equal(8);
         });
     });
 
@@ -59,11 +60,54 @@ const markup =
 
             expect(tree).to.be.a('object');
             expect(tree).to.be.an.instanceof(NaryTree);
-            expect(tree.size()).to.be.equal(7);
+            expect(tree.size()).to.be.equal(8);
         });
     });
 
     /*============================================================================*/
+
+    describe('QuickReact Test Multiplier Syntax', function() {
+        it('Find a matching attribute and the multiplier factor', function() {
+            const quickReact = new QuickReact();
+            const tree = quickReact.parseMarkup(markup);
+            //quickReact.generateProjectFiles('123456', '5551212', tree);
+
+            let returnValue=0;
+            
+            component = tree.getByObjectProperty( {'name': 'Children'} );
+
+            returnValue = quickReact._findMultiplier(component, 'eeeeee');
+            expect(returnValue).to.be.equal(0);
+
+            returnValue = quickReact._findMultiplier(component, 'useEffect');
+            expect(returnValue).to.be.equal(1);
+
+            returnValue = quickReact._findMultiplier(component, 'useContext');
+            expect(returnValue).to.be.equal(44);
+
+            returnValue = quickReact._findMultiplier(component, 'useState');
+            expect(returnValue).to.be.equal(3);
+
+            component = tree.getByObjectProperty( {'name': 'Main'} );
+
+            returnValue = quickReact._findMultiplier(component, 'text');
+            expect(returnValue).to.be.equal(3);
+
+            returnValue = quickReact._findMultiplier(component, 'textarea');
+            expect(returnValue).to.be.equal(2);
+
+            returnValue = quickReact._findMultiplier(component, 'checkbox');
+            expect(returnValue).to.be.equal(4);
+
+            returnValue = quickReact._findMultiplier(component, 'password');
+            expect(returnValue).to.be.equal(1);
+
+        });
+    });
+
+    /*============================================================================*/
+
+
 
 
 });

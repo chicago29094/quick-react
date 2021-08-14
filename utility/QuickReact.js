@@ -506,9 +506,73 @@ class QuickReact {
         return this._tree;
     }
 
+    /*==========================================================================================*/
+
+    // This function prints a strings from the current code index to a specified length to provide the developer/user
+    // with a reference as to where their code may have a syntax error.
     _printRef(code, index, length) {
         return `Reference: ${code.slice(index, index+length)}`
     }
+
+    /*==========================================================================================*/
+
+    // The _multiplier function that an attribute key name as an argument and determined whether a multiplier 
+    // express is used, denoted by an '*', to indicate a repeat of the item a certain number of times.
+    // Multiplier values can be a single integer digit or two integer digits long.
+    _multiplier(attribute) {
+        if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(attribute.slice(-2)))  ) {
+            const num=(parseInt(attribute.slice(-2)));
+            return num;
+        }
+        else if ( (attribute.length>=3) && (attribute.charAt(attribute.length-2)==='*') && (!isNaN(attribute.slice(-1)))  ) {
+            const num=(parseInt(attribute.slice(-1)));
+            return num;
+        }
+        else {
+            return 1;
+        }
+    }
+
+    // This is the same as the _multiplier function except that it looks through all of the component's attributes for
+    // the first matching attribute, compared via key name, and then checks to see if a multiplier expression is used.
+    _findMultiplier(component, searchAttribute) {
+
+        const attributes = component.getAllAttributes(component);
+        let attribute = "";
+        if (attributes.length<=0) {
+            return 0;
+        }
+
+        for (let [key, value] of attributes) {
+            let regex = new RegExp(`${searchAttribute}\\*\\d{2}|${searchAttribute}\\*\\d{1}|${searchAttribute}`);
+            if ( (value!==undefined) && (value!==null) && (typeof value==='string') ) {
+                const matches = value.match(regex);        
+                if ( (matches!=null) && (matches[0]!==null) && (matches[0].length>0) ) {
+                    attribute = matches[0];
+                    break;
+                }
+            }
+        }
+
+        if (attribute==='') {
+            return 0;
+        }
+
+        if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(attribute.slice(-2)))  ) {
+            const num=(parseInt(attribute.slice(-2)));
+            return num;
+        }
+        else if ( (attribute.length>=3) && (attribute.charAt(attribute.length-2)==='*') && (!isNaN(attribute.slice(-1)))  ) {
+            const num=(parseInt(attribute.slice(-1)));
+            return num;
+        }
+        else {
+            return 1;
+        }
+    }
+
+
+    /*==========================================================================================*/
 
 
     generateProjectFiles(userID, projectID, tree) {
@@ -527,7 +591,7 @@ class QuickReact {
         // First, check for important global configuration settings, like whether to use bootstrap
         let quickReactElement = {};
         let useBootstrap=false;
-        quickReactElement = tree.getByObjectPropery( {'_name':'Config'} );
+        quickReactElement = tree.getByObjectProperty( {'_name':'Config'} );
         if (quickReactElement.hasAttribute('react-bootstrap')) {
             useBootstrap=quickReactElement.getAttribute('react-bootstrap');
         }
@@ -586,7 +650,7 @@ class QuickReact {
             if ( quickReactElement.name==='Config') {
                 // Use the config node as an opportunity to create an index_qr.js file
                 document = "";
-                document = document + output_index(useBootstrap, quickReactElement, node);     
+                document = document + output_index(useBootstrap, tree, quickReactElement, node);     
                 
                 let indexFilepath = path.join(projectDirectory, 'index_qr.js');
 
@@ -599,7 +663,7 @@ class QuickReact {
             }
             else if ( quickReactElement.name==='App') {
                 document = "";
-                document = document + output_app(useBootstrap, quickReactElement, node);                 
+                document = document + output_app(useBootstrap, tree, quickReactElement, node);                 
 
                 let appFilepath = path.join(projectDirectory, 'App_qr.js')
 
@@ -612,7 +676,7 @@ class QuickReact {
             }
             else if ( quickReactElement.type==='component') {
                 document = "";
-                document = document + output_component(useBootstrap, quickReactElement, node);      
+                document = document + output_component(useBootstrap, tree, quickReactElement, node);      
 
                 let componentDirectory = path.join(projectDirectory, 'components', `${quickReactElement.name}`);
                 
@@ -651,7 +715,7 @@ class QuickReact {
 
 /*================================================================================================*/
 
-function output_index(useBootstrap, quickReactElement, node) {
+function output_index(useBootstrap, tree, quickReactElement, node) {
 
 let output = "";
 
@@ -711,7 +775,7 @@ return output;
 
 /*================================================================================================*/
 
-function output_app(useBootstrap, quickReactElement, node) {
+function output_app(useBootstrap, tree, quickReactElement, node) {
 
 let output = "";
 
@@ -761,14 +825,23 @@ output = output + `import './App.css';\n`;
 output = output + `\n`;
 output = output + `/*==========================================================================================*/\n`;
 
-if ( 
-    ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) || 
-    ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) ) 
-    ) {
-    output = output + `export const SampleContext = React.createContext(); \n`;
-    output = output + `export const SampleDispatchContext = React.createContext();\n`;
+if ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) )  {
+
+    for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useContext'); i++) {
+        output = output + `export const SampleContext${i} = React.createContext(); \n`;
+    }
+    output = output + `\n`;
+
+}
+
+if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
+
+    for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useReducer'); i++) {
+        output = output + `export const SampleDispatchContext${i} = React.createContext();\n`;
+    }
     output = output + `\n`;
 }
+
 
 output = output + `
 export const App = (props) => {
@@ -786,11 +859,11 @@ output = output + ` const params = useParams();\n`;
 
 if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
+for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useReducer'); i++) {
 output = output + `
   
   // This useReducer hook can call local functions to handle the requested actions if necessary
-  function sampleReducer(state, action) {
-
+  function sampleReducer${i}(state, action) {
     switch (action.type) {
       case 'Case1':
         return newState;
@@ -803,45 +876,53 @@ output = output + `
     }
   }
   
-  // sample initialState
-  const initialState {
+  // sample initialState${i}
+  const initialState${i} {
     user: "",
     password: "",
     loggedin: false,
   }
 
-  const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
+  const [sampleState${i}, dispatch${i}] = useReducer(sampleReducer${i}, initialState${i});
 
 `;
 }
 
+}
+
+
 if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) ) {
-    output = output + ' const [formValues, setFormValues] = useState(initialFormValues);\n'
-    output = output + ' const [formError, setFormError] = useState(false);\n'
-    output = output + ' \n'
+
+    for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useState'); i++) {
+    output = output + ` const [formValues${i}, setFormValues${i}] = useState(initialFormValues${i});\n`;
+    output = output + ` const [formError${i}, setFormError${i}] = useState(false);\n`;
+    output = output + ` \n`;
+    }
 }
 
 if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
+
+for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useEffect'); i++) {
 output = output + 
 `
   /*==========================================================================================*/
-
   // Preferred method formatting of placing async function calls inside the useEffect as an 
   // anonymous function
   useEffect( () => {    
-      async function _handleGenericAsync() {
+      async function _handleGenericAsync${i}() {
         try {
 
         } catch(error) {
           console.error(error);
         }
       }
-    _handleGenericAsync();
+    _handleGenericAsync${i}();
   }
   ,[]);
-
   /*==========================================================================================*/
 `;
+
+}
 }
 
 output=output + 
@@ -851,20 +932,22 @@ output=output +
     <div className="App">
 `;
 
-if ( 
-    ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ||  
-    ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))   
-    ) {
-output = output + `    <SampleContext.Provider value={sampleState} > \n`;
-output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
-output = output + `\n`;
+if ( ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) ) {
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useContext'); i++) {
+        output = output + `    <SampleContext${i}.Provider value={sampleState${i}} > \n`;
+        }
 }
 
+if ( ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ) {
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useReducer'); i++) {
+        output = output + `    <SampleDispatchContext${i}.Provider value={dispatch${i}} > \n`;
+        }
+}
 
 childrenNodes = node.children;
 if (childrenNodes.length>0) {
     for (let child of childrenNodes) {
-        output = output + `     <${child.value.name} />\n`;
+        output = output + `     <${child.value.name} state={state} setState={setState} />\n`;
     }
 }
 
@@ -883,6 +966,7 @@ output = output + `
             <Route path="/home" render={() => <div>Home</div>} />
 `;
 }
+
 if ((reactSwitch!==undefined) && (reactSwitch===true)) {
     output = output + `       </Switch>\n`;
 }
@@ -891,10 +975,17 @@ if ((reactLink!==undefined) && (reactLink===true)) {
     output = output + `        <Link to="/">Home</Link>\n`;
 }
 
-if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
-    output = output + `\n`;
-    output = output + `    </SampleDispatchContext.Provider>\n`;
-    output = output + `    </SampleContext.Provider>\n`;
+
+if ( ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ) {
+        for (let i=tree._findMultiplier(quickReactElement, 'useReducer'); i>0; i--) {
+        output = output + `    </SampleDispatchContext${i}.Provider>\n`;
+        }
+}
+
+if ( ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) ) {
+        for (let i=tree._findMultiplier(quickReactElement, 'useContext'); i>0; i--) {
+        output = output + `    </SampleContext${i}.Provider>\n`;
+        }
 }
 
 output=output + 
@@ -916,7 +1007,7 @@ return output;
 
 /*================================================================================================*/
 
-function output_component(useBootstrap, quickReactElement, node) {
+function output_component(useBootstrap, tree, quickReactElement, node) {
 
     let output = "";
     
@@ -972,12 +1063,19 @@ function output_component(useBootstrap, quickReactElement, node) {
     output = output + `\n`;
     output = output + `/*==========================================================================================*/\n`;
     
-    if ( 
-            ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) || 
-            ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) 
-            ) {
-        output = output + `export const SampleContext = React.createContext(); \n`;
-        output = output + `export const SampleDispatchContext = React.createContext();\n`;
+    if (  (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) )  {
+    
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useContext'); i++) {
+            output = output + `export const SampleContext${i} = React.createContext(); \n`;
+        }
+        output = output + `\n`;
+    }
+    
+    if (  (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) )  {
+    
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useReducer'); i++) {
+            output = output + `export const SampleDispatchContext${i} = React.createContext();\n`;
+        }
         output = output + `\n`;
     }
     
@@ -1007,11 +1105,11 @@ function output_component(useBootstrap, quickReactElement, node) {
 
     if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useReducer'); i++) {
         output = output + `
           
           // This useReducer hook can call local functions to handle the requested actions if necessary
-          function sampleReducer(state, action) {
-        
+          function sampleReducer${i}(state, action) {
             switch (action.type) {
               case 'Case1':
                 return newState;
@@ -1024,23 +1122,26 @@ function output_component(useBootstrap, quickReactElement, node) {
             }
           }
           
-          // sample initialState
-          const initialState {
+          // sample initialState${i}
+          const initialState${i} {
             user: "",
             password: "",
             loggedin: false,
           }
         
-          const [sampleState, dispatch] = useReducer(sampleReducer, initialState);
+          const [sampleState${i}, dispatch${i}] = useReducer(sampleReducer${i}, initialState${i});
         
         `;
+        }
     }
 
-
     if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) ) {
-        output = output + ' const [formValues, setFormValues] = useState(initialFormValues);\n'
-        output = output + ' const [formError, setFormError] = useState(false);\n'
-        output = output + ' \n'
+
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useState'); i++) {
+            output = output + ` const [formValues${i}, setFormValues${i}] = useState(initialFormValues${i});\n`;
+            output = output + ` const [formError${i}, setFormError${i}] = useState(false);\n`;
+            output = output + ` \n`;
+        }
     }
     
     if ( (useForm!==undefined) && (useForm===true) ) {
@@ -1099,51 +1200,167 @@ function output_component(useBootstrap, quickReactElement, node) {
     }
 
     if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
-    output = output + 
-    `
-        /*==========================================================================================*/
-    
-      useEffect( () => {    
-          async function _handleGenericAsync() {
-            try {
-    
-            } catch(error) {
-              console.error(error);
-            }
+
+        for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useEffect'); i++) {
+        output = output + 
+        `
+          /*==========================================================================================*/
+          // Preferred method formatting of placing async function calls inside the useEffect as an 
+          // anonymous function
+          useEffect( () => {    
+              async function _handleGenericAsync${i}() {
+                try {
+        
+                } catch(error) {
+                  console.error(error);
+                }
+              }
+            _handleGenericAsync${i}();
           }
-        _handleGenericAsync();
-      }
-      ,[]);
-    
-      /*==========================================================================================*/
-    `;
+          ,[]);
+          /*==========================================================================================*/
+        `;
+        
+        }
     }
-    
+
     output=output + 
     `
       return (
      
-        <div className="App">
+        <div className="${quickReactElement.name.toLowerCase()}-container">
     `;
     
     if ( 
-            ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) || 
-            ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))     
+        ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))   
         ) {
-    output = output + `    <SampleContext.Provider value={sampleState} > \n`;
-    output = output + `    <SampleDispatchContext.Provider value={dispatch} > \n`;
-    output = output + `\n`;
-    }
-    
-    childrenNodes = node.children;
-    if (childrenNodes.length>0) {
-        for (let child of childrenNodes) {
-            output = output + `<${child.value.name} />\n`;
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useContext'); i++) {
+            output = output + `    <SampleContext${i}.Provider value={sampleState${i}} > \n`;
+            }
         }
+    
+    if ( 
+        ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) 
+        ) {
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'useReducer'); i++) {
+            output = output + `    <SampleDispatchContext${i}.Provider value={dispatch${i}} > \n`;
+            }
     }
     
 
     if ( (useForm!==undefined) && (useForm===true) && (useBootstrap) ) {
+
+        if (quickReactElement.hasAttribute('forminputs')) {
+
+            output = output + 
+            `
+            <>
+            <Form onSubmit={_handleRegistration}>
+            `;
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'text'); i++) {
+            output = output +
+            `
+            <Form.Group className="mb-3" controlId="textfield${i}">
+            <Form.Label>*TextField${i}</Form.Label>
+            <Form.Control type="text" onChange={_handleChange} value={formValues.textfield${i}} placeholder="" required/>
+            </Form.Group>
+            `;
+            }
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'textarea'); i++) {
+            output = output +
+            `
+            <Form.Group className="mb-3" controlId="textarea${i}">
+            <Form.Label>Textarea#{i}</Form.Label>
+              <Form.Control
+                as="textarea"
+                name="textarea${i}"
+                value={formValues.textarea${i}}
+                onChange={_handleChange}
+                placeholder=""
+                style={{ height: '200px' }}
+                required
+              />
+            </Form.Group>
+            `;      
+            }      
+            
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'password'); i++) {
+            output = output +
+            `            
+            <Form.Group className="mb-3" controlId="password">
+            <Form.Label>*Select Password</Form.Label>
+            <Form.Control type="password" onChange={_handleChange} value={formValues.password} placeholder="Password Required" required />
+            </Form.Group>
+            
+            <Form.Group className="mb-3" controlId="confirm_password">
+            <Form.Label>*Confirm Password</Form.Label>
+            <Form.Control type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues.confirm_password} placeholder="Confirm Password Required" required />
+            </Form.Group>
+            {formError && <Alert variant='danger'>Passwords must match!</Alert>}
+            `;
+            }
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'checkbox'); i++) {
+                if (i===0) {
+                    output = output + `            <div key='inline-checkbox' className="mb-3">`;
+                }
+                else if (i!==0) {
+                    output = output + `            <Form.Check inline label="${i}" name="checkboxgroup${i}" type='checkbox' id='inline-checkbox-${i}'} />`;
+                }
+                else if (i===tree._findMultiplier(quickReactElement, 'checkbox')) {
+                    output = output + `            </div>`;
+                }
+            }
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'radio'); i++) {
+                if (i===0) {
+                    output = output + `            <div key='inline-radio' className="mb-3">`;
+                }
+                else if (i!==0) {
+                    output = output + `            <Form.Check inline label="${i}" name="radiogroup${i}" type='radio' id='inline-radio-${i}'} />`;
+                }
+                else if (i===tree._findMultiplier(quickReactElement, 'radio')) {
+                    output = output + `            </div>`;
+                }
+            }
+
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'select'); i++) {
+                if (i===0) {
+                    output = output + `            <Form.Group as={Col} controlId="formGridState${i}">`;
+                }
+                else if (i!==0) {
+                    output = output + 
+                    `
+                    <Form.Label>State${i}</Form.Label>
+                    <Form.Select defaultValue="Choose...">
+                        <option>Choose...</option>
+                        <option value="IL">Illinois</option>
+                        <option value="MI">Michigan</option>
+                        <option value="NY">New York</option>
+                    </Form.Select>
+                    `;
+                }
+                else if (i===tree._findMultiplier(quickReactElement, 'select')) {
+                    output = output + `            </Form.Group>`;
+                }
+            }            
+
+            output=output + 
+            `
+            <Button variant="primary" type="submit" disabled={formError}>
+            Submit Form
+            </Button>
+    
+            </Form>
+    
+            </>
+    
+            `;
+    
+        }
+        else {
         output = output + 
         `
         <>
@@ -1184,22 +1401,128 @@ function output_component(useBootstrap, quickReactElement, node) {
         </>
 
         `;
+        }
     }
 
     if ( (useForm!==undefined) && (useForm===true) && (!useBootstrap) ) {
-        output = output + 
-        `
-        <form onSubmit={_handleUserLogin}>
-            <div>
-                <label htmlFor='username'>Username: </label>
+
+        if (quickReactElement.hasAttribute('forminputs')) {
+
+            output = output + 
+            `
+            <>
+            <form onSubmit={_handleRegistration}>
+            `;
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'text'); i++) {
+            output = output +
+            `
+                <div>
+                <label htmlFor='textfield${i}'>Textfield${i} </label>
                     <input
                         type='text'
-                        id='username'
-                        value={formValues.username}
+                        id='textfield${i}'
+                        value={formValues.textfield${i}}
+                        placeholder=''
                         onChange={_handleChange}
                         required
                     />  
+                </div>
+            `;
+            }
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'textarea'); i++) {
+            output = output +
+            `
+            <div>
+                <label htmlFor='textarea${i}'>TextArea${i} </label>
+                <textarea name='textarea${i}' id='textarea${i}' value={formValues.textarea${i}} onChange={_handleChange} placeholder='' style={{ height: '200px' }} required>
+                </textarea>
             </div>
+            `;      
+            }      
+            
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'password'); i++) {
+            output = output +
+            `            
+            <fieldset>
+                <label htmlFor='password${i}'>*Select Password</label>
+                <input type="password" onChange={_handleChange} value={formValues.password} placeholder="Password Required" required />
+                </Form.Group>
+            
+                <label htmlFor='confirm_password${i}'>*Confirm Password</label>
+                <input type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues.confirm_password} placeholder="Confirm Password Required" required />
+                {formError && <Alert variant='danger'>Passwords must match!</Alert>}
+            </fieldset>
+            `;
+            }
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'checkbox'); i++) {
+                if (i===0) {
+                    output = output + `            <div key='inline-checkbox' className="mb-3">`;
+                }
+                else if (i!==0) {
+                    output = output + `            <input name="checkboxgroup${i}" type='checkbox' id='inline-checkbox-${i}'} />`;
+                }
+                else if (i===tree._findMultiplier(quickReactElement, 'checkbox')) {
+                    output = output + `            </div>`;
+                }
+            }
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'radio'); i++) {
+                if (i===0) {
+                    output = output + `            <div key='inline-radio' className="mb-3">`;
+                }
+                else if (i!==0) {
+                    output = output + `            <input name="radiogroup${i}" type='radio' id='inline-radio-${i}'} />`;
+                }
+                else if (i===tree._findMultiplier(quickReactElement, 'radio')) {
+                    output = output + `            </div>`;
+                }
+            }
+
+
+            for (let i=1; i<=tree._findMultiplier(quickReactElement, 'select'); i++) {
+                if (i===0) {
+                    output = output + `            <fieldset id="formGridState${i}">`;
+                }
+                else if (i!==0) {
+                    output = output + 
+                    `
+                    <label htmlFor="selectfield${i}">SelectField${i}</Form.Label>
+                    <select name="selectfield${i}" id="selectfield${i}" defaultValue="Choose...">
+                        <option>Choose...</option>
+                        <option value="IL">Illinois</option>
+                        <option value="MI">Michigan</option>
+                        <option value="NY">New York</option>
+                    </select>
+                    `;
+                }
+                else if (i===tree._findMultiplier(quickReactElement, 'select')) {
+                    output = output + `            </fieldset>`;
+                }
+            }            
+
+            output=output + 
+            `
+            <button type="submit" disabled={formError} className='form-button'>
+            Submit Form
+            </button>
+    
+            <form>
+    
+            </>
+    
+            `;
+    
+        }
+
+        ///////////////////////////////////////////////////////////
+
+        if (quickReactElement.hasAttribute('forminputs')) {
+        output = output + 
+        `
+
             <div>
                 <label htmlFor='password'>Password: </label>
                     <input
@@ -1214,6 +1537,36 @@ function output_component(useBootstrap, quickReactElement, node) {
         </form>
 
         `;
+        }
+        else {
+            output = output + 
+            `
+            <form onSubmit={_handleUserLogin}>
+                <div>
+                    <label htmlFor='username'>Username: </label>
+                        <input
+                            type='text'
+                            id='username'
+                            value={formValues.username}
+                            onChange={_handleChange}
+                            required
+                        />  
+                </div>
+                <div>
+                    <label htmlFor='password'>Password: </label>
+                        <input
+                            type='password'
+                            id='password'
+                            value={formValues.password}
+                            onChange={_handleChange}
+                            required
+                        />
+                </div>
+                <input type='submit' value='Member Login' />
+            </form>
+    
+            `;    
+        }
     }
 
     if ( (useMap!==undefined) && (usemap===true) ) {
@@ -1257,13 +1610,19 @@ function output_component(useBootstrap, quickReactElement, node) {
     }
     
     if ( 
-            ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ||
-            ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) 
+        ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) 
         ) {
-        output = output + `\n`;
-        output = output + `    </SampleDispatchContext.Provider>\n`;
-        output = output + `    </SampleContext.Provider>\n`;
-
+            for (let i=tree._findMultiplier(quickReactElement, 'useReducer'); i>0; i--) {
+            output = output + `    </SampleDispatchContext${i}.Provider>\n`;
+            }
+    }
+    
+    if ( 
+        ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))   
+        ) {
+            for (let i=tree._findMultiplier(quickReactElement, 'useContext'); i>0; i--) {
+            output = output + `    </SampleContext${i}.Provider>\n`;
+            }
     }
     
     output=output + 

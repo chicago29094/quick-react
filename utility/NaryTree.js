@@ -210,7 +210,7 @@ class NaryTree {
     /*================================================================================================*/
     // In no object parameter is specified, return the root node object
     // In an object is specified, get returns the first occurrence of the specified object using a level-order tree traversal iterator.
-    getByObjectPropery( obj ) {
+    getByObjectProperty( obj ) {
 
         if ( (obj===undefined) || (obj===null) ) {
             return this._root.value;
