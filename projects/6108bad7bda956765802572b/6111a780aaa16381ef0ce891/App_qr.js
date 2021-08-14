@@ -14,10 +14,10 @@ export const App = (props) => {
   return (
  
     <div className="App">
-<Children />
-<Header />
-<Main />
-<Footer />
+     <Children state={state} setState={setState} />
+     <Header state={state} setState={setState} />
+     <Main state={state} setState={setState} />
+     <Footer state={state} setState={setState} />
 
     </div>
   );

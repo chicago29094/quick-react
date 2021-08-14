@@ -1,6 +1,7 @@
 const mongoose = require('../db/connection');
 
 const ProjectSchema = new mongoose.Schema({
+    project_directory: { type: String, required: true},
     project_name: { type: String, required: true},
     project_description: { type: String, required: false},
     project_markup: { type: String, required: false },

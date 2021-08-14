@@ -65,7 +65,7 @@ router.get('/:project_id', requireToken, async (req, res) => {
 })
 
 //###################################################################################################
-// Create Route - Add a new user quick-react project
+// Create Route - Add a new quick-react project
 router.post('/', requireToken, async (req, res) => {
         
     errorFlag=false;
@@ -78,6 +78,12 @@ router.post('/', requireToken, async (req, res) => {
         errorMessage="An invalid or incomplete request has been made to the API."; 
         errorFlag=true;
     }
+
+    if ( (req.body.project_directory===undefined) || (req.body.project_directory===null) ) {
+        errorMessage="Projects need to include a project directory.";  
+        errorFlag=true;
+    }
+
     if ( (req.body.project_name===undefined) || (req.body.project_name===null) ) {
         errorMessage="Projects need to include a project name.";  
         errorFlag=true;
@@ -87,9 +93,9 @@ router.post('/', requireToken, async (req, res) => {
         return res.status(400).json({"ErrorMessage": errorMessage})    
     }    
 
-  
 
     const projectRecord = {
+        project_directory: req.body.project_directory,
         project_name: req.body.project_name,
         project_description: req.body.project_description,
         project_markup: req.body.project_markup,
@@ -164,6 +170,12 @@ router.put('/:project_id', requireToken, async (req, res) => {
             errorMessage="An invalid or incomplete request has been made to the API."; 
             errorFlag=true;
         }
+
+        if ( (req.body.project_directory===undefined) || (req.body.project_directory===null) ) {
+            errorMessage="Projects need to include a project directory.";  
+            errorFlag=true;
+        }
+
         if ( (req.body.project_name===undefined) || (req.body.project_name===null) ) {
             errorMessage="Projects need to include a project name.";  
             errorFlag=true;
@@ -179,6 +191,7 @@ router.put('/:project_id', requireToken, async (req, res) => {
         }    
     
         const projectRecord = {
+            project_directory: req.body.project_directory,
             project_name: req.body.project_name,
             project_description: req.body.project_description,
             project_markup: req.body.project_markup,
@@ -215,6 +228,12 @@ router.put('/download/:project_id', requireToken, async (req, res) => {
             errorMessage="An invalid or incomplete request has been made to the API."; 
             errorFlag=true;
         }
+
+        if ( (req.body.project_directory===undefined) || (req.body.project_directory===null) ) {
+            errorMessage="Projects need to include a project directory.";  
+            errorFlag=true;
+        }
+
         if ( (req.body.project_name===undefined) || (req.body.project_name===null) ) {
             errorMessage="Projects need to include a project name.";  
             errorFlag=true;
@@ -230,6 +249,7 @@ router.put('/download/:project_id', requireToken, async (req, res) => {
         }    
     
         const projectRecord = {
+            project_directory: req.body.project_directory,
             project_name: req.body.project_name,
             project_description: req.body.project_description,
             project_markup: req.body.project_markup,
