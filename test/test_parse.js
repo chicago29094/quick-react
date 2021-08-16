@@ -17,7 +17,7 @@ const markup =
     <Header>
         <Navigation />
     </Header>
-    <Main form forminputs='text*3, textarea*2, checkbox*4, password'>
+    <Main form forminputs='text*3, textarea[ginger, baker], checkbox*4, password'>
         <Resume form userReducer useContext />
     </Main>
     <Footer />
