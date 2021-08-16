@@ -535,7 +535,7 @@ class QuickReact {
 
     // This is the same as the _multiplier function except that it looks through all of the component's attributes for
     // the first matching attribute, compared via key name, and then checks to see if a multiplier expression is used.
-    _findMultiplier(component, searchAttribute) {
+    _findMultiplier(component, searchAttribute, fieldNames) {
 
         const attributes = component.getAllAttributes(component);
         let attribute = "";
