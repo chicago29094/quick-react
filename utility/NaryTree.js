@@ -21,11 +21,11 @@ class NaryNode {
     }
 
     set children(newArray) {
-        return this._children=newArray;
+        this._children=newArray;
     }
 
     set value(newValue) {
-        return this._value=newValue;
+        this._value=newValue;
     }
 
 }
@@ -53,7 +53,7 @@ class NaryTree {
 
         // Add the root node itself
         if (this.isEmpty()) {
-            const node = new NaryNode(childObj, 0);
+            const node = new NaryNode(childObj);
             this._tree = node;
             this._root = node;
             this._size++;
@@ -61,7 +61,7 @@ class NaryTree {
         }
         // Add the next child for the root node
         else {
-            const node = new NaryNode(childObj, 1);
+            const node = new NaryNode(childObj);
             this._root.children.push(node);
             this._size++;
             this._modCount++;            
@@ -508,7 +508,7 @@ class NaryTree {
         let rootNode = {};
 
         if ( (obj===undefined) || (obj===null) ) {
-            throw new TypeErrot('A valid object must be specified when removing a sub-tree by object.')
+            throw new TypeError('A valid object must be specified when removing a sub-tree by object.')
         }
 
         if ( (parentNode!==undefined) && (parentNode!==null) ) {
@@ -575,7 +575,7 @@ class NaryTree {
         let removeNode={};
         let found=false;
         for (let node of treeIterator) {
-            if (node.value===obj) {
+            if (node===naryNode) {
                 removeNode=node;
                 found=true;
             }
@@ -638,11 +638,11 @@ class NaryTree {
 
         treeIterator = this.levelOrderIterator(sizeNode);
 
-        size=0;
+        let treeSize=0;
         for (let node of treeIterator) {
-            size++;
+            treeSize++;
         }
-        return size;
+        return treeSize;
         
     }
 

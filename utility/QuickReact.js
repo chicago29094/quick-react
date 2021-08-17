@@ -22,7 +22,7 @@ class QuickReactElement {
         this._attributes=new Map();
 
         if ( (attributes!==undefined) ) {
-            if (typeof attributes !== object) {
+            if (typeof attributes !== 'object') {
                 throw TypeError('Quick-React Element attributes must be submitted as a shallow object containing key, value pairs.');
             }
 
@@ -135,7 +135,6 @@ class QuickReact {
 
         let i=0;
         let j=0;
-        let regex='';
         let codeIndex=0;
         let startIndex=0;
         let endIndex=0;
@@ -180,6 +179,16 @@ class QuickReact {
                     throw new SyntaxError(`The markup code is missing a closing '>' character. ${this._printRef(code, startIndex, 80)} `);
                 }
 
+                // If this is a JSX empty enclosing component <> or </>, ignore them
+                if (code.charAt(startIndex+1)==='>') {
+                    codeIndex=codeIndex+2;
+                    continue;
+                }                
+                else if ( (code.charAt(startIndex+1)==='/') && (code.charAt(startIndex+2)==='>') ) {
+                    codeIndex=codeIndex+3;
+                    continue;
+                }           
+
                 // Is this a close tag for a component opening tag/closing tag pair?
                 if (code.charAt(startIndex+1)==='/') {
                     closeComponent=true;
@@ -205,7 +214,7 @@ class QuickReact {
                 component = code.slice(startIndex+1, endIndex);
 
                 // Remove spaces around comma separated lists so split lexical tokenization can work better
-                regex = /\s+,\s+|\s+,|,\s+/g
+                let regex = /\s+,\s+|\s+,|,\s+/g
                 normalizedComponent = component.replace(regex, ',');
                 component=normalizedComponent;
                 // Remove single and double quotes around component attributes to ease further lexing and  subsequent parsing
@@ -520,11 +529,11 @@ class QuickReact {
     // express is used, denoted by an '*', to indicate a repeat of the item a certain number of times.
     // Multiplier values can be a single integer digit or two integer digits long.
     _multiplier(attribute) {
-        if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(attribute.slice(-2)))  ) {
+        if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(parseInt(attribute.slice(-2))))  ) {
             const num=(parseInt(attribute.slice(-2)));
             return num;
         }
-        else if ( (attribute.length>=3) && (attribute.charAt(attribute.length-2)==='*') && (!isNaN(attribute.slice(-1)))  ) {
+        else if ( (attribute.length>=3) && (attribute.charAt(attribute.length-2)==='*') && (!isNaN(parseInt(attribute.slice(-1))))  ) {
             const num=(parseInt(attribute.slice(-1)));
             return num;
         }
@@ -834,7 +843,7 @@ if (hooks!==undefined) {
     if (hooks.indexOf('useContext')!=-1)    { hookTokenList=hookTokenList+comma+'useContext'; comma=", "; }
     if (hooks.indexOf('useReducer')!=-1)    { hookTokenList=hookTokenList+comma+'useReducer'; comma=", "; }
 
-    output = output + `import { ${hooksTokenList} } from 'react';\n`;
+    output = output + `import { ${hookTokenList} } from 'react';\n`;
 }
 
 let reactSwitch=quickReactElement.getAttribute('switch');
@@ -1129,7 +1138,6 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
 
     let specifiedNameArray=[];
     let matchIndex=0;
-    let specifiedNameArrayInner=[];
 
     let output = "";
     
@@ -1820,7 +1828,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         }
     }
 
-    if ( (useMap!==undefined) && (usemap===true) ) {
+    if ( (useMap!==undefined) && (useMap===true) ) {
         output = output + 
         `
             // Sample array value mapping to JSX per-item output
