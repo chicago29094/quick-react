@@ -8,7 +8,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import './App.css';
 
 /*==========================================================================================*/
-export const SampleContext1 = React.createContext(); 
+export const [object Object] = React.createContext(); 
 
 
     export const Children = (props) => {
@@ -22,14 +22,14 @@ export const SampleContext1 = React.createContext();
           // Preferred method formatting of placing async function calls inside the useEffect as an 
           // anonymous function
           useEffect( () => {    
-              async function _handleGenericAsync1() {
+              async function _handlegenericasync1() {
                 try {
         
                 } catch(error) {
                   console.error(error);
                 }
               }
-            _handleGenericAsync1();
+            _handlegenericasync1();
           }
           ,[]);
           /*==========================================================================================*/
@@ -37,8 +37,8 @@ export const SampleContext1 = React.createContext();
       return (
      
         <div className="children-container">
-        <SampleContext1.Provider value={sampleState1} > 
-    </SampleContext1.Provider>
+        <Samplecontext1.Provider value={sampleState1} > 
+    </undefined.Provider>
 
         </div>
       );

@@ -535,7 +535,7 @@ class QuickReact {
 
     // This is the same as the _multiplier function except that it looks through all of the component's attributes for
     // the first matching attribute, compared via key name, and then checks to see if a multiplier expression is used.
-    _findMultiplier(component, searchAttribute, specifiedNameArray, defaultName) {
+    _findMultiplier(component, searchAttribute, specifiedNameArray, defaultName, matchIndex) {
 
         const attributes = component.getAllAttributes(component);
         let attribute = "";
@@ -544,11 +544,11 @@ class QuickReact {
         }
 
         for (let [key, value] of attributes) {
-            let regex = new RegExp(`${searchAttribute}\\*\\d{2}|${searchAttribute}\\*\\d{1}|${searchAttribute}\[.+\]|${searchAttribute}`);
+            let regex = new RegExp(`${searchAttribute}\\*\\d{2}|${searchAttribute}\\*\\d{1}|${searchAttribute}\\[.+?\\]|^${searchAttribute}$|${searchAttribute}[\s\t,;]|[\s\t,;]${searchAttribute}[\s\t,;]|[\s\t,;]${searchAttribute}$`, 'g');
             if ( (value!==undefined) && (value!==null) && (typeof value==='string') ) {
-                const matches = value.match(regex);        
-                if ( (matches!=null) && (matches[0]!==null) && (matches[0].length>0) ) {
-                    attribute = matches[0];
+                const matches = value.match(regex);    
+                if ( (matches!=null) && (matchIndex<matches.length) && (matches[matchIndex]!==null) && (matches[matchIndex].length>0) ) {
+                    attribute = matches[matchIndex];
                     break;
                 }
             }
@@ -562,14 +562,18 @@ class QuickReact {
         if ( (attribute.indexOf('[')!==-1) && (attribute.indexOf(']')!==-1) ) {
 
             // Grab the value between the square brackets
-            const fieldNameList=attribute.slice(attribute.indexOf('['),attribute.lastIndexOf(']'));
+            const fieldNameList=attribute.slice(attribute.indexOf('[')+1,attribute.lastIndexOf(']'));
 
             // If it is a comma separated list, split it into individual array elements and reference the values using the 
             // specifiedNameArray method parameter
             const fieldNameArray=fieldNameList.split(',');
 
+            if (fieldNameArray.length===0) {
+                return 0;
+            }
+
             // Trim out any starting or trailing whitespace, although there shouldn't be any at this point
-            for (let i=1; i<=fieldNameArray.length, i++) {
+            for (let i=0; i<fieldNameArray.length; i++) {
                 specifiedNameArray[i]={};
                 specifiedNameArray[i]['default']=fieldNameArray[i].trim();
                 specifiedNameArray[i]['lower']=specifiedNameArray[i]['default'].toLowerCase();
@@ -591,9 +595,9 @@ class QuickReact {
             num=1;
         }
 
-        for (let i=1; i<=num; i++) {
+        for (let i=0; i<num; i++) {
             specifiedNameArray[i]={};
-            specifiedNameArray[i]['default']=''+defaultName.trim()+i;
+            specifiedNameArray[i]['default']=''+defaultName.trim()+(i+1);
             specifiedNameArray[i]['lower']=specifiedNameArray[i]['default'].toLowerCase();
             specifiedNameArray[i]['mixed']=specifiedNameArray[i]['lower'][0].toUpperCase()+specifiedNameArray[i]['lower'].slice(1);
         }        
@@ -743,7 +747,11 @@ class QuickReact {
 
 }
 
+
 /*================================================================================================*/
+/*================================================================================================*/
+/*================================================================================================*/
+
 
 function output_index(useBootstrap, quickReact, tree, quickReactElement, node) {
 
@@ -803,12 +811,17 @@ return output;
 
 }
 
+
 /*================================================================================================*/
+/*================================================================================================*/
+/*================================================================================================*/
+
 
 function output_app(useBootstrap, quickReact, tree, quickReactElement, node) {
 
 let specifiedNameArray=[];
 let output = "";
+let matchIndex=0;
 
 output = output + `import React from 'react';\n`;
 
@@ -843,7 +856,13 @@ if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRoute!==undefined
 }
 
 if (useBootstrap) {
-output = output + `import { Container, Row, Col } from 'react-bootstrap';\n`;
+    let useForm=quickReactElement.getAttribute('form');
+    if ( (useForm!==undefined) && (useForm===true) ) {    
+        output = output + `import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';\n`;
+    }
+    else {
+        output = output + `import { Container, Row, Col } from 'react-bootstrap';\n`;
+    }
 }
 
 let childrenNodes = node.children;
@@ -859,20 +878,27 @@ output = output + `/*===========================================================
 if ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) )  {
 
     specifiedNameArray=[];
-    for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext'); i++) {
-        output = output + `export const ${specifiedNameArray[i]} = React.createContext(); \n`;
+    matchIndex=0;
+    while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
+        for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i++) {
+            output = output + `export const ${specifiedNameArray[i]} = React.createContext(); \n`;
+        }
+        output = output + `\n`;
+        matchIndex++;
     }
-    output = output + `\n`;
-
 }
 
 if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
     specifiedNameArray=[];
-    for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext'); i++) {
-        output = output + `export const ${specifiedNameArray[i]} = React.createContext();\n`;
+    matchIndex=0;
+    while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
+        for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i++) {
+            output = output + `export const ${specifiedNameArray[i]} = React.createContext();\n`;
+        }
+        output = output + `\n`;
+        matchIndex++;
     }
-    output = output + `\n`;
 }
 
 
@@ -892,81 +918,107 @@ output = output + ` const params = useParams();\n`;
 
 if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
-specifiedNameArray=[];
-for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'sampleReducer'); i++) {
-output = output + `
-  
-  // This useReducer hook can call local functions to handle the requested actions if necessary
-  function ${specifiedNameArray[i]}(state, action) {
-    switch (action.type) {
-      case 'Case1':
-        return newState;
-      case 'Case2':
-        return newState;
-      case 'Case3':
-          return newState;        
-      default:
-        return newState;
+    specifiedNameArray=[];
+    matchIndex=0;
+    while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'sampleReducer', matchIndex)!==0) {
+    for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'sampleReducer', matchIndex); i++) {
+        output = output + `
+        
+        // This useReducer hook can call local functions to handle the requested actions if necessary
+        function ${specifiedNameArray[i]}(state, action) {
+            switch (action.type) {
+            case 'Case1':
+                return newState;
+            case 'Case2':
+                return newState;
+            case 'Case3':
+                return newState;        
+            default:
+                return newState;
+            }
+        }
+        
+        // sample initialState${(i+1)}
+        const initialState${(i+1)} = {
+            user: "",
+            password: "",
+            loggedin: false,
+        }
+
+        const [sampleState${(i+1)}, dispatch${(i+1)}] = useReducer(${specifiedNameArray[i]}, initialState${(i+1)});
+
+        `;
     }
-  }
-  
-  // sample initialState${i}
-  const initialState${i} {
-    user: "",
-    password: "",
-    loggedin: false,
-  }
-
-  const [sampleState${i}, dispatch${i}] = useReducer(${specifiedNameArray[i]}, initialState${i});
-
-`;
-}
+    matchIndex++;
+    }
 
 }
 
 let useForm=quickReactElement.getAttribute('form');
 if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) && (useForm!==undefined) && (useForm===true) ) {
 
-    specifiedNameArray=[];
-    for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'formValues'); i++) {
-        output = output + ` const [formValues${i}, setFormValues${i}] = useState(initialFormValues${i});\n`;
-        output = output + ` const [formError${i}, setFormError${i}] = useState(false);\n`;
-        output = output + ` \n`;
+    output = output + 
+    `    
+    // sample initialFormValues
+    const initialFormValues1 = {
+        first_name: "",
+        last_name: "",
+        email_address: "",
     }
+    \n`;
+
+    specifiedNameArray=[];
+    matchIndex=0;
+    while (quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'formValues', matchIndex)!==0 ) {
+        for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'formValues', matchIndex); i++) {
+            output = output + `    const [formValues${(i+1)}, setFormValues${(i+1)}] = useState(initialFormValues${(i+1)});\n`;
+            output = output + `    const [formError${(i+1)}, setFormError${(i+1)}] = useState(false);\n`;
+            output = output + ` \n`;
+        }
+        matchIndex++;
+    }    
 }
 else if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1)  ) {
 
     specifiedNameArray=[];
-    for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState'); i++) {
-        output = output + ` const [${specifiedNameArray[i]}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
-        output = output + ` \n`;
+    matchIndex=0;
+    while (quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex)!==0 ) {
+        for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex); i++) {
+            output = output + ` const [${specifiedNameArray[i]}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
+            output = output + ` \n`;
+        }
+        matchIndex++;
     }
 }
 
 if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
 
-specifiedNameArray=[];
-for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useEffect', specifiedNameArray, 'sampleEffect'); i++) {
-output = output + 
-`
-  /*==========================================================================================*/
-  // Preferred method formatting of placing async function calls inside the useEffect as an 
-  // anonymous function
-  useEffect( () => {    
-      async function _handleGenericAsync${i}() {
-        try {
+    specifiedNameArray=[];
+    matchIndex=0;
+    while (quickReact._findMultiplier(quickReactElement, 'useEffect', specifiedNameArray, 'sampleEffect', matchIndex)!==0 ) {
+        for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useEffect', specifiedNameArray, 'sampleEffect', matchIndex); i++) {
+        output = output + 
+        `
+        /*==========================================================================================*/
+        // Preferred method formatting of placing async function calls inside the useEffect as an 
+        // anonymous function
+        useEffect( () => {    
+            async function _handleGenericAsync${(i+1)}() {
+                try {
 
-        } catch(error) {
-          console.error(error);
+                } catch(error) {
+                console.error(error);
+                }
+            }
+            _handleGenericAsync${(i+1)}();
         }
-      }
-    _handleGenericAsync${i}();
-  }
-  ,[]);
-  /*==========================================================================================*/
-`;
+        ,[]);
+        /*==========================================================================================*/
+        `;
 
-}
+        }
+        matchIndex++;
+    }
 }
 
 output=output + 
@@ -978,15 +1030,23 @@ output=output +
 
 if ( ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) ) {
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext'); i++) {
-        output = output + `    <${specifiedNameArray[i].mixed}.Provider value={sampleState${i}} > \n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i++) {
+                output = output + `    <${specifiedNameArray[i].mixed}.Provider value={sampleState${(i+1)}} > \n`;
+            }
+            matchIndex++;
         }
 }
 
 if ( ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ) {
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext'); i++) {
-        output = output + `    <${specifiedNameArray[i].mixed}.Provider value={dispatch${i}} > \n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i++) {
+                output = output + `    <${specifiedNameArray[i].mixed}.Provider value={dispatch${(i+1)}} > \n`;
+            }
+            matchIndex++;
         }
 }
 
@@ -1024,15 +1084,23 @@ if ((reactLink!==undefined) && (reactLink===true)) {
 
 if ( ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ) {
         specifiedNameArray=[];
-        for (let i=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext' ); i>0; i--) {
-        output = output + `    </${specifiedNameArray[i].mixed}.Provider>\n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
+            for (let i=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i>0; i--) {
+                output = output + `    </${specifiedNameArray[i].mixed}.Provider>\n`;
+            }
+            matchIndex++;
         }
 }
 
 if ( ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) ) {
         specifiedNameArray=[];
-        for (let i=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext'); i>0; i--) {
-        output = output + `    </${specifiedNameArray[i].mixed}.Provider>\n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
+            for (let i=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i>0; i--) {
+                output = output + `    </${specifiedNameArray[i].mixed}.Provider>\n`;
+            }
+            matchIndex++;
         }
 }
 
@@ -1052,12 +1120,15 @@ return output;
 }
 
 
-
 /*================================================================================================*/
+/*================================================================================================*/
+/*================================================================================================*/
+
 
 function output_component(useBootstrap, quickReact, tree, quickReactElement, node) {
 
     let specifiedNameArray=[];
+    let matchIndex=0;
     let specifiedNameArrayInner=[];
 
     let output = "";
@@ -1101,7 +1172,13 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     }
     
     if (useBootstrap) {
-        output = output + `import { Container, Row, Col } from 'react-bootstrap';\n`;
+        let useForm=quickReactElement.getAttribute('form');
+        if ( (useForm!==undefined) && (useForm===true) ) {    
+            output = output + `import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';\n`;
+        }
+        else {
+            output = output + `import { Container, Row, Col } from 'react-bootstrap';\n`;
+        }
     }
     
     let childrenNodes = node.children;
@@ -1117,20 +1194,28 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     if ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) )  {
 
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext'); i++) {
-            output = output + `export const ${specifiedNameArray[i]} = React.createContext(); \n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i++) {
+                output = output + `export const ${specifiedNameArray[i]} = React.createContext(); \n`;
+            }
+            output = output + `\n`;
+            matchIndex++;
         }
-        output = output + `\n`;
 
     }
     
     if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext'); i++) {
-            output = output + `export const ${specifiedNameArray[i]} = React.createContext();\n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i++) {
+                output = output + `export const ${specifiedNameArray[i]} = React.createContext();\n`;
+            }
+            output = output + `\n`;
+            matchIndex++;
         }
-        output = output + `\n`;
     }
     
     let useForm=quickReactElement.getAttribute('form');
@@ -1160,51 +1245,74 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
 
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'sampleReducer'); i++) {
-        output = output + `
-          
-          // This useReducer hook can call local functions to handle the requested actions if necessary
-          function s${specifiedNameArray[i]}(state, action) {
-            switch (action.type) {
-              case 'Case1':
-                return newState;
-              case 'Case2':
-                return newState;
-              case 'Case3':
-                  return newState;        
-              default:
-                return newState;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'sampleReducer', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'sampleReducer', matchIndex); i++) {
+            output = output + `
+            
+            // This useReducer hook can call local functions to handle the requested actions if necessary
+            function s${specifiedNameArray[i]}(state, action) {
+                switch (action.type) {
+                case 'Case1':
+                    return newState;
+                case 'Case2':
+                    return newState;
+                case 'Case3':
+                    return newState;        
+                default:
+                    return newState;
+                }
             }
-          }
-          
-          // sample initialState${i}
-          const initialState${i} {
-            user: "",
-            password: "",
-            loggedin: false,
-          }
-        
-          const [sampleState${i}, dispatch${i}] = useReducer(${specifiedNameArray[i]}, initialState${i});
-        
-        `;
+            
+            // sample initialState${(i+1)}
+            const initialState${(i+1)} = {
+                user: "",
+                password: "",
+                loggedin: false,
+            }
+            
+            const [sampleState${(i+1)}, dispatch${(i+1)}] = useReducer(${specifiedNameArray[i]}, initialState${(i+1)});
+            
+            `;
+            }
+            matchIndex++;
         }
     }
 
+
     if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) && (useForm!==undefined) && (useForm===true) ) {
 
+        output = output + 
+        `    
+        // sample initialFormValues
+        const initialFormValues1 = {
+            first_name: "",
+            last_name: "",
+            email_address: "",
+        }
+        \n`;
+    
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'formValue'); i++) {
-            output = output + ` const [formValues${i}, setFormValues${i}] = useState(initialFormValues${i});\n`;
-            output = output + ` const [formError${i}, setFormError${i}] = useState(false);\n`;
-            output = output + ` \n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'formValue', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'formValue', matchIndex); i++) {
+                output = output + `    const [formValues${(i+1)}, setFormValues${(i+1)}] = useState(initialFormValues${(i+1)});\n`;
+                output = output + `    const [formError${(i+1)}, setFormError${(i+1)}] = useState(false);\n`;
+                output = output + ` \n`;
+            }
+            matchIndex++;
         }
     }
     else if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1)  ) {
 
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState'); i++) {
-            output = output + ` const [${specifiedNameArray[i]}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
-            output = output + ` \n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex); i++) {
+                output = output + ` const [${specifiedNameArray[i]}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
+                output = output + ` \n`;
+            }
+            matchIndex++;
         }
     }    
     
@@ -1213,7 +1321,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     `
         // A typical _handleChange controlled form field handler
         const _handleChange = (event) => {
-            setFormValues((prevState) => {
+            setFormValues1((prevState) => {
               // console.log(prevState)
               return {
                 ...prevState,
@@ -1224,10 +1332,10 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
 
           // A typical onBlur form field change validation handler
           const _handleVerifyForm = (event) => {
-              if (formValues.password !== formValues.confirm_password) {
-                  setFormError(true);
+              if (formValues1.password !== formValues1.confirm_password) {
+                  setFormError1(true);
               } else {
-                  setFormError(false);
+                  setFormError1(false);
               }     
           }
 
@@ -1241,7 +1349,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
               try {
                   const response = await fetch(API_URI, {
                       "method": 'POST',
-                      "body": JSON.stringify(formValues),
+                      "body": JSON.stringify(formValues1),
                       "headers": {
                           "Content-Type": 'application/json'
                       }
@@ -1249,7 +1357,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
           
                   const data = await response.json();                  
                   if ( (response.status===200) || (response.status===201) ) {
-                      setFormValues(initialFormValues);
+                      setFormValues1(initialFormValues1);
                   }
                   else {
                     console.error('Registration Failed');
@@ -1266,7 +1374,9 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     if ( (hooks!==undefined) && (hooks.indexOf('useEffect')!=-1) ) {
 
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useEffect', specifiedNameArray, '_handleGenericAsync'); i++) {
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useEffect', specifiedNameArray, '_handleGenericAsync', matchIndex)!==0) {
+        for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useEffect', specifiedNameArray, '_handleGenericAsync', matchIndex); i++) {
         output = output + 
         `
           /*==========================================================================================*/
@@ -1287,6 +1397,8 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         `;
         
         }
+        matchIndex++;
+        }
     }
 
     output=output + 
@@ -1298,15 +1410,23 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     
     if ( ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1)) ) {
         specifiedNameArray=[];
-        for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext'); i++) {
-        output = output + `    <${specifiedNameArray[i].mixed}.Provider value={sampleState${i}} > \n`;
+        matchIndex=0;
+        while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i++) {
+                output = output + `    <${specifiedNameArray[i].mixed}.Provider value={sampleState${(i+1)}} > \n`;
+            }
+            matchIndex++;
         }
     }
 
     if ( ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) ) {
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext'); i++) {
-            output = output + `    <${specifiedNameArray[i].mixed}.Provider value={dispatch${i}} > \n`;
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i++) {
+                    output = output + `    <${specifiedNameArray[i].mixed}.Provider value={dispatch${(i+1)}} > \n`;
+                }
+                matchIndex++;
             }
     }   
     
@@ -1319,19 +1439,27 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
             <>
             <Form onSubmit={_handleRegistration}>
             `;
+
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'text', specifiedNameArray, 'textfield'); i++) {
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'text', specifiedNameArray, 'textfield', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'text', specifiedNameArray, 'textfield', matchIndex); i++) {
             output = output +
             `
             <Form.Group className="mb-3" controlId="${specifiedNameArray[i].lower}">
             <Form.Label>*${specifiedNameArray[i].mixed}</Form.Label>
-            <Form.Control type="text" onChange={_handleChange} value={formValues.${specifiedNameArray[i].lower}} placeholder="" required/>
+            <Form.Control type="text" onChange={_handleChange} value={formValues1.${specifiedNameArray[i].lower}} placeholder="" required/>
             </Form.Group>
             `;
             }
+            matchIndex++;
+            }
+
 
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'textarea', specifiedNameArray, 'textareafield'); i++) {
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'textarea', specifiedNameArray, 'textareafield', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'textarea', specifiedNameArray, 'textareafield', matchIndex); i++) {
             output = output +
             `
             <Form.Group className="mb-3" controlId="${specifiedNameArray[i].lower}">
@@ -1339,7 +1467,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
               <Form.Control
                 as="textarea"
                 name="${specifiedNameArray[i].lower}"
-                value={formValues.t${specifiedNameArray[i].lower}}
+                value={formValues1.${specifiedNameArray[i].lower}}
                 onChange={_handleChange}
                 placeholder=""
                 style={{ height: '200px' }}
@@ -1347,75 +1475,93 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
               />
             </Form.Group>
             `;      
-            }      
+            }
+            matchIndex++;
+            }
             
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'password', specifiedNameArray, 'password'); i++) {
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'password', specifiedNameArray, 'password', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'password', specifiedNameArray, 'password', matchIndex); i++) {
             output = output +
             `            
             <Form.Group className="mb-3" controlId="password">
             <Form.Label>*Select Password</Form.Label>
-            <Form.Control type="password" onChange={_handleChange} value={formValues.password} placeholder="Password Required" required />
+            <Form.Control type="password" onChange={_handleChange} value={formValues1.password} placeholder="Password Required" required />
             </Form.Group>
             
             <Form.Group className="mb-3" controlId="confirm_password">
             <Form.Label>*Confirm Password</Form.Label>
-            <Form.Control type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues.confirm_password} placeholder="Confirm Password Required" required />
+            <Form.Control type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues1.confirm_password} placeholder="Confirm Password Required" required />
             </Form.Group>
             {formError && <Alert variant='danger'>Passwords must match!</Alert>}
             \n\n`;
-
+            }
+            matchIndex++;
             }
 
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox'); i++) {
-                if (i===1) {
-                    output = output + `         <div key='inline-checkbox' className="mb-3">\n`;
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox', matchIndex); i++) {
+                    if (i===0) {
+                        output = output + `         <div key='inline-checkbox' className="mb-3">\n`;
+                    }
+                    if (i>=0) {
+                        output = output + `         <Form.Check inline label="${specifiedNameArray[i].mixed}" name="checkboxgroup-${specifiedNameArray[i].lower}" type='checkbox' id='inline-checkbox-${specifiedNameArray[i].lower}' />\n`;
+                    }
+                    if (i===quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox', matchIndex)-1) {
+                        output = output + `         </div>\n\n`;
+                    }
                 }
-                if (i!==0) {
-                    output = output + `         <Form.Check inline label="${specifiedNameArray[i].mixed}" name="checkboxgroup${i}" type='checkbox' id='inline-checkbox-${specifiedNameArray[i].lower}' />\n`;
-                }
-                if (i===quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox')) {
-                    output = output + `         </div>\n\n`;
-                }
+                matchIndex++;
             }
 
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio'); i++) {
-                if (i===1) {
-                    output = output + `         <div key='inline-radio' className="mb-3">\n`;
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio', matchIndex); i++) {
+                    if (i===0) {
+                        output = output + `         <div key='inline-radio' className="mb-3">\n`;
+                    }
+                    if (i>=0) {
+                        output = output + `         <Form.Check inline label="${specifiedNameArray[i].mixed}" name="radiogroup-${specifiedNameArray[i].lower}" type='radio' id='inline-radio-${specifiedNameArray[i].lower}' />\n`;
+                    }
+                    if (i===quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio', matchIndex)-1) {
+                        output = output + `         </div>\n\n`;
+                    }
                 }
-                if (i!==0) {
-                    output = output + `         <Form.Check inline label="${specifiedNameArray[i].mixed}" name="radiogroup${i}" type='radio' id='inline-radio-${specifiedNameArray[i].lower}' />\n`;
-                }
-                if (i===quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio')) {
-                    output = output + `         </div>\n\n`;
-                }
+                matchIndex++;
             }
 
-
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select'); i++) {
-                if (i===1) {
-                    output = output + `         <Form.Group as={Col} controlId="formGridState${i}">\n`;
-                }
-                if (i!==0) {
-                output = output + 
-                `
-                <Form.Label>${specifiedNameArray[i].mixed}</Form.Label>
-                <Form.Select defaultValue="Choose...">
-                    <option>Choose...</option>
-                    <option value="IL">Illinois</option>
-                    <option value="MI">Michigan</option>
-                    <option value="NY">New York</option>
-                </Form.Select>
-                \n`;
-                }
-                specifiedNameArray=[];
-                if (i===quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select')) {
-                    output = output + `         </Form.Group>\n`;
-                }
-            }            
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select', matchIndex); i++) {
+ 
+                    if (i===0) {
+                        output = output + `         <Form.Group as={Col} controlId="formGridState${(i+1)}">\n`;
+                    }
+
+                    if (i>=0) {
+                    output = output + 
+                    `
+                    <Form.Label>${specifiedNameArray[i].mixed}</Form.Label>
+                    <Form.Select defaultValue="Choose...">
+                        <option>Choose...</option>
+                        <option value="IL">Illinois</option>
+                        <option value="MI">Michigan</option>
+                        <option value="NY">New York</option>
+                    </Form.Select>
+                    \n`;
+                    }
+
+                    if (i===quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select', matchIndex)-1) {
+                        output = output + `         </Form.Group>\n`;
+                    }
+                } 
+                matchIndex++;
+            }
 
             output=output + 
             `
@@ -1438,27 +1584,27 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
 
         <Form.Group className="mb-3" controlId="email">
         <Form.Label>*Email address</Form.Label>
-        <Form.Control type="email" onChange={_handleChange} value={formValues.email} placeholder="name@example.com" required/>
+        <Form.Control type="email" onChange={_handleChange} value={formValues1.email} placeholder="name@example.com" required/>
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="first_name">
         <Form.Label>*First Name</Form.Label>
-        <Form.Control type="text" onChange={_handleChange} value={formValues.first_name} placeholder="First Name Required" required />
+        <Form.Control type="text" onChange={_handleChange} value={formValues1.first_name} placeholder="First Name Required" required />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="last_name">
         <Form.Label>*Last Name</Form.Label>
-        <Form.Control type="last_name" onChange={_handleChange} value={formValues.last_name} placeholder="Last Name Required" required />
+        <Form.Control type="last_name" onChange={_handleChange} value={formValues1.last_name} placeholder="Last Name Required" required />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="password">
         <Form.Label>*Select Password</Form.Label>
-        <Form.Control type="password" onChange={_handleChange} value={formValues.password} placeholder="Password Required" required />
+        <Form.Control type="password" onChange={_handleChange} value={formValues1.password} placeholder="Password Required" required />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="confirm_password">
         <Form.Label>*Confirm Password</Form.Label>
-        <Form.Control type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues.confirm_password} placeholder="Confirm Password Required" required />
+        <Form.Control type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues1.confirm_password} placeholder="Confirm Password Required" required />
         </Form.Group>
         {formError && <Alert variant='danger'>Passwords must match!</Alert>}
 
@@ -1485,7 +1631,9 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
             `;
 
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'text', specifiedNameArray, 'textfield'); i++) {
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'text', specifiedNameArray, 'textfield', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'text', specifiedNameArray, 'textfield', matchIndex); i++) {
             output = output +
             `
                 <div>
@@ -1493,7 +1641,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
                     <input
                         type='text'
                         id='${specifiedNameArray[i].lower}'
-                        value={formValues.${specifiedNameArray[i].lower}}
+                        value={formValues1.${specifiedNameArray[i].lower}}
                         placeholder=''
                         onChange={_handleChange}
                         required
@@ -1501,88 +1649,110 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
                 </div>
             `;
             }
+            matchIndex++;
+            }
 
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'textarea', specifiedNameArray, 'textarea'); i++) {
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'textarea', specifiedNameArray, 'textarea', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'textarea', specifiedNameArray, 'textarea', matchIndex); i++) {
             output = output +
             `
             <div>
                 <label htmlFor='${specifiedNameArray[i].lower}'>${specifiedNameArray[i].mixed} </label>
-                <textarea name='${specifiedNameArray[i].lower}' id='${specifiedNameArray[i].lower}' value={formValues.${specifiedNameArray[i].lower}} onChange={_handleChange} placeholder='' style={{ height: '200px' }} required>
+                <textarea name='${specifiedNameArray[i].lower}' id='${specifiedNameArray[i].lower}' value={formValues1.${specifiedNameArray[i].lower}} onChange={_handleChange} placeholder='' style={{ height: '200px' }} required>
                 </textarea>
             </div>
             `;      
-            }      
+            }  
+            matchIndex++;    
+            }
             
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'password', specifiedNameArray, 'password'); i++) {
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'password', specifiedNameArray, 'password', matchIndex)!==0) {
+            for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'password', specifiedNameArray, 'password', matchIndex); i++) {
             output = output +
             `            
             <fieldset>
-                <label htmlFor='password${i}'>*Select Password</label>
-                <input type="password" onChange={_handleChange} value={formValues.password} placeholder="Password Required" required />
+                <label htmlFor='password${(i+1)}'>*Select Password</label>
+                <input type="password" onChange={_handleChange} value={formValues1.password} placeholder="Password Required" required />
                 </Form.Group>
             
-                <label htmlFor='confirm_password${i}'>*Confirm Password</label>
-                <input type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues.confirm_password} placeholder="Confirm Password Required" required />
+                <label htmlFor='confirm_password${(i+1)}'>*Confirm Password</label>
+                <input type="password" onChange={_handleChange} onBlur={_handleVerifyForm} value={formValues1.confirm_password} placeholder="Confirm Password Required" required />
                 {formError && <Alert variant='danger'>Passwords must match!</Alert>}
             </fieldset>
             `;
             }
-
-            specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox'); i++) {
-                if (i===1) {
-                    output = output + `            <div key='inline-checkbox' className="mb-3">`;
-                }
-                if (i!==0) {
-                    output = output + `            <input name="checkboxgroup${i}" type='checkbox' id='inline-checkbox-${specifiedNameArray[i].lower}'} />`;
-                }
-
-                specifiedNameArray=[];
-                if (i===quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox')) {
-                    output = output + `            </div>`;
-                }
+            matchIndex++;
             }
 
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio'); i++) {
-                if (i===1) {
-                    output = output + `            <div key='inline-radio' className="mb-3">`;
-                }
-                if (i!==0) {
-                    output = output + `            <input name="radiogroup${i}" type='radio' id='inline-radio-${specifiedNameArray[i].lower}'} />`;
-                }
+            specifiedNameArray=[];
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox', matchIndex); i++) {
+                    if (i===0) {
+                        output = output + `            <div key='inline-checkbox' className="mb-3">`;
+                    }
+                    if (i>=0) {
+                        output = output + `            <input name="checkboxgroup-${specifiedNameArray[i].lower}" type='checkbox' id='inline-checkbox-${specifiedNameArray[i].lower}'} />`;
+                    }
 
-                specifiedNameArray=[];
-                if (i===quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio')) {
-                    output = output + `            </div>`;
+                    if (i===quickReact._findMultiplier(quickReactElement, 'checkbox', specifiedNameArray, 'checkbox', matchIndex)-1) {
+                        output = output + `            </div>`;
+                    }
                 }
+                matchIndex++;
+            }
+
+            specifiedNameArray=[];
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio', matchIndex); i++) {
+                    if (i===0) {
+                        output = output + `            <div key='inline-radio' className="mb-3">`;
+                    }
+                    if (i>=0) {
+                        output = output + `            <input name="radiogroup-${specifiedNameArray[i].lower}" type='radio' id='inline-radio-${specifiedNameArray[i].lower}'} />`;
+                    }
+
+                    if (i===quickReact._findMultiplier(quickReactElement, 'radio', specifiedNameArray, 'radio', matchIndex)-1) {
+                        output = output + `            </div>`;
+                    }
+                }
+                matchIndex++;
             }
 
 
             specifiedNameArray=[];
-            for (let i=1; i<=quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select'); i++) {
-                if (i===1) {
-                    output = output + `            <fieldset id="formGridState${i}">`;
-                }
-                if (i!==0) {
-                    output = output + 
-                    `
-                    <label htmlFor="${specifiedNameArray[i].lower}">${specifiedNameArray[i].mixed}</Form.Label>
-                    <select name="${specifiedNameArray[i].lower}" id="${specifiedNameArray[i].lower}" defaultValue="Choose...">
-                        <option>Choose...</option>
-                        <option value="IL">Illinois</option>
-                        <option value="MI">Michigan</option>
-                        <option value="NY">New York</option>
-                    </select>
-                    `;
-                }
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select', matchIndex)!==0) {
+                for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select', matchIndex); i++) {
 
-                specifiedNameArray=[];
-                if (i===quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select')) {
-                    output = output + `            </fieldset>`;
+                    if (i===0) {
+                        output = output + `            <fieldset id="formGridState${(i+1)}">`;
+                    }
+
+                    if (i>=0) {
+                        output = output + 
+                        `
+                        <label htmlFor="${specifiedNameArray[i].lower}">${specifiedNameArray[i].mixed}</Form.Label>
+                        <select name="${specifiedNameArray[i].lower}" id="${specifiedNameArray[i].lower}" defaultValue="Choose...">
+                            <option>Choose...</option>
+                            <option value="IL">Illinois</option>
+                            <option value="MI">Michigan</option>
+                            <option value="NY">New York</option>
+                        </select>
+                        `;
+                    }
+
+                    if (i===quickReact._findMultiplier(quickReactElement, 'select', specifiedNameArray, 'select', matchIndex)-1) {
+                        output = output + `            </fieldset>`;
+                    }
                 }
-            }            
+                matchIndex++;
+            }
 
             output=output + 
             `
@@ -1609,7 +1779,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
                     <input
                         type='password'
                         id='password'
-                        value={formValues.password}
+                        value={formValues1.password}
                         onChange={_handleChange}
                         required
                     />
@@ -1628,7 +1798,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
                         <input
                             type='text'
                             id='username'
-                            value={formValues.username}
+                            value={formValues1.username}
                             onChange={_handleChange}
                             required
                         />  
@@ -1638,7 +1808,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
                         <input
                             type='password'
                             id='password'
-                            value={formValues.password}
+                            value={formValues1.password}
                             onChange={_handleChange}
                             required
                         />
@@ -1694,8 +1864,12 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         ((hooks!==undefined) && (hooks.indexOf('useReducer')!=-1)) 
         ) {
             specifiedNameArray=[];
-            for (let i=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext'); i>0; i--) {
-            output = output + `    </${specifiedNameArray[i]}.Provider>\n`;
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
+                for (let i=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i>0; i--) {
+                    output = output + `    </${specifiedNameArray[i]}.Provider>\n`;
+                }
+                matchIndex++;
             }
     }
     
@@ -1703,8 +1877,12 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         ((hooks!==undefined) && (hooks.indexOf('useContext')!=-1))   
         ) {
             specifiedNameArray=[];
-            for (let i=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext'); i>0; i--) {
-            output = output + `    </${specifiedNameArray[i]}.Provider>\n`;
+            matchIndex=0;
+            while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) { 
+                for (let i=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i>0; i--) {
+                    output = output + `    </${specifiedNameArray[i]}.Provider>\n`;
+                }
+                matchIndex++;
             }
     }
     
