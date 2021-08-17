@@ -13,9 +13,9 @@ var AdmZip = require('adm-zip');
 let errorFlag=false;
 let errorMessage="";
 
-//###################################################################################################
-// User Project Routes
-// Index Route - List all quick-react projects for logged in user
+/**
+ * User Project Routes: Index Route: List all quick-react projects for logged in user
+ */
 router.get('/', requireToken, async (req, res) => {
 
     errorFlag=false;
@@ -36,8 +36,9 @@ router.get('/', requireToken, async (req, res) => {
     }
 })
 
-//###################################################################################################
-// Show Route - Show the requested quick-react project for the logged in user
+/**
+ * Show Route: Show the requested quick-react project for the logged in user
+ */
 router.get('/:project_id', requireToken, async (req, res) => {
 
     errorFlag=false;
@@ -64,8 +65,9 @@ router.get('/:project_id', requireToken, async (req, res) => {
     }
 })
 
-//###################################################################################################
-// Create Route - Add a new quick-react project
+/**
+ * Create Route: Add a new quick-react project to the user's account
+ */
 router.post('/', requireToken, async (req, res) => {
         
     errorFlag=false;
@@ -115,8 +117,9 @@ router.post('/', requireToken, async (req, res) => {
     }
 })
 
-//###################################################################################################
-// Delete Route - Delete a user quick-react project 
+/**
+ * Delete Route: Delete a user quick-react project 
+ */
 router.delete('/:project_id', requireToken, async (req, res) => {
 
     errorFlag=false;
@@ -155,8 +158,9 @@ router.delete('/:project_id', requireToken, async (req, res) => {
     }
 })
 
-//###################################################################################################
-// Update Route
+/**
+ * Update Route: Update the information and code for a Quick-React project.
+ */
 router.put('/:project_id', requireToken, async (req, res) => {
     try {
 
@@ -213,8 +217,9 @@ router.put('/:project_id', requireToken, async (req, res) => {
     }
 })
 
-//###################################################################################################
-// Update Route
+/**
+ * Download Route: Download the directories and files for a Quick-React project in ZIP archive format
+ */
 router.put('/download/:project_id', requireToken, async (req, res) => {
     try {
 
@@ -258,7 +263,7 @@ router.put('/download/:project_id', requireToken, async (req, res) => {
         }
 
         const updatedProject = await Project.findOneAndUpdate( { "_id": req.params.project_id, "user_id": req.user._id}, projectRecord, {new: true, useFindAndModify: false } );
-        //console.log(updatedProject);
+        // console.log(updatedProject);
         if ( (updatedProject===undefined) || (updatedProject===null) ) {
             res.status(400).json({"ErrorMessage": `project ${req.params.project_id} no match`})  
         }

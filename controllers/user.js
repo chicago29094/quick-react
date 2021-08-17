@@ -8,9 +8,10 @@ const router = express.Router();
 let errorFlag=false;
 let errorMessage="";
 
-/*===========================================================================================================*/
-// Register Route
-// POST /api/register
+/**
+ *  Register Route: Register a new Quick-React user
+ *  POST /api/register
+ */
 router.post('/register', async (req, res) => {
     errorFlag=false;
     // console.log(req.body);
@@ -71,9 +72,10 @@ router.post('/register', async (req, res) => {
     }
   });
 
-/*===========================================================================================================*/
-// Log In Route
-// POST /api/login
+/**
+ *  Log In Route: Log in a registered user to their account
+ *  POST /api/login
+ */
 router.post('/login', async (req, res) => {
 
     errorFlag=false;
@@ -118,8 +120,9 @@ router.post('/login', async (req, res) => {
 });
 
 
-/*===========================================================================================================*/
-// Show Route - Show the requested quick-react project for the logged in user
+/**
+ *  Show Route: Retrieve the requested Quick-React project for the logged in user
+ */
 router.get('/user/:user_id', requireToken, async (req, res) => {
 
     if ( (req.params.user_id===undefined) || (req.params.user_id.length!=24) )  {

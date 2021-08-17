@@ -1,12 +1,18 @@
-// Dependencies
+/**
+ *  Load Required Dependencies 
+ */
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-// Global configuration
+/**
+ *  Global configuration 
+ */
 const mongoURL = process.env.DATABASE_URL;
 const db = mongoose.connection;
 
-// Connect to MongoDB
+/**
+ *  Connect to MongoDB
+ */
 mongoose.connect(mongoURL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,

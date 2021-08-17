@@ -1,3 +1,6 @@
+/**
+ * Mocha/Chai tests for n-Ary Tree Library
+ */
 const assert = require('assert');
 const should = require('chai').should();
 const expect = require('chai').expect;

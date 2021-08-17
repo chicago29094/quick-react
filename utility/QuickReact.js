@@ -4,11 +4,20 @@ const path = require('path');
 var AdmZip = require('adm-zip');
 
 
-/*================================================================================================*/
-// Quick-React elements are an object type where each element has an assigned type, name, and a 
-// set of unique key/value attributes stored as a JavaScript Map data structure.
+/**
+ * @classdesc Quick-React elements are an object type where each element has an assigned type, name, and a 
+ * set of unique key/value attributes stored as a JavaScript Map data structure.
+ * @class
+ */
+
 class QuickReactElement {
 
+    /**
+     * @constructor - The QuickReactElement class object constructor method
+     * @param {string} name - a name for this element
+     * @param {string} type - a type to categorize this element 
+     * @param {object} attributes object - a shallow object containing [key, value] pairs 
+     */
     constructor(name, type, attributes) {
         if ( (name===undefined) || (name===null) ) {
             throw TypeError('Quick-React Elements must be instantiated with a name and type.')
@@ -32,38 +41,71 @@ class QuickReactElement {
         }
     }
 
+    /**
+     * @method - getter
+     * @returns - this element's designated type
+     */
     get type() {
         return this._type;
     }
 
+    /**
+     * @method - setter method to set this element's type value
+     * @param {string} typeValue string - the element's type value 
+     */
     set type(typeValue) {
         this._type=typeValue;
     }
 
+    /**
+     * @method - getter
+     * @returns - this element's designated subtype
+     */
     get subtype() {
         return this._subtype;
     }
 
+    /**
+     * @method - setter method to set this element's subtype value
+     * @param {string} subtypeValue string - the element's subtype value 
+     */
     set subtype(subtypeValue) {
         this._subtype=subtypeValue;
     }
 
-
+    /**
+     * @method - getter
+     * @returns - this element's name
+     */
     get name() {
         return this._name;
     }
 
+    /**
+     * @method - setter method to set this element's name
+     * @param {string} nameValue string - the element's name 
+     */    
     set name(nameValue) {
         this._name=nameValue;
     }
 
-    // Check to see if the Quick-React element has a specific attribute set
+    /**
+     * Check to see if the Quick-React element has a specific attribute set
+     * @method
+     * @param {string} key string - check to see whether this element has an attribute with the specified property key 
+     * @returns {boolean}
+     */
     hasAttribute(key) {
         return this._attributes.has(key);
     }
 
-    // Safely Check to see if the Quick-React element has a specific attribute key set to a specific value
-    // This method does not return undefined for undefined properties, it always returns a boolean true or false value
+    /**
+     * Safely Check to see if the Quick-React element has a specific attribute key set to a specific value
+     * This method does not return undefined for undefined properties, it always returns a boolean true or false value
+     * @method
+     * @param {obj} obj object - check to see whether this element has an attribute with the specified property key and value, submitted as a shallow object
+     * @returns {boolean}
+    */
     safeHasAttribute(obj) {
         const [key, value] = Object.entries(obj)[0];
 
@@ -80,54 +122,96 @@ class QuickReactElement {
         }
     }
 
-
+    /**
+     * Returns the number of attributes this element has
+     * @method
+     * @returns {number} - the number of attributes this element has
+     */
     getAttributeSize() {
         return  this._attributes.size;
     }
 
-    // Get an attribute's value
+    /**
+     * Get an attribute's value specified by the key parameter
+     * @method
+     * @params {string} key string - the string representing the attribute property to search for
+     * @returns {string} value string - the value associated with the specified key
+     */
     getAttribute(key) {
         return this._attributes.get(key);
     }
 
-    // Delete an attribute
+    /**
+     * Delete an attribute specified by the key parameter
+     * @method
+     * @params {string} key string - the string representing the attribute property to delete
+     * @returns {boolean} - true or false return value depending on whether the delete request was successfully processed
+    */
     deleteAttribute(key) {
         return this._attributes.delete(key);
     }
 
-    // Set a key value pair
+    /**
+     * Set a key value pair as an attribute of this element
+     * @method
+     * @param {object} {key:value} object to be set as an attribute of this element
+     * @returns {object} map object - attribute map object is returned 
+     */
     setAttribute( obj ) {
         const [key,value] = Object.entries(obj)[0];
         return this._attributes.set(key, value);
     }
 
-    // Returns all key/value pairs as an array using the spread operator
+    /**
+     * Returns all key/value pairs as an array using the spread operator
+     * @method
+     * @returns {array} - returns all key/value pairs as an array using the spread operator
+     */
     getAllAttributes() {
         return([...this._attributes]);
     }
 
+    /**
+     * Returns the name of this element
+     * @method
+     * @returns {strings} - returns the name of this element
+     */    
     toString() {
         return `${this._name} ${this._attributes}`;
     }
 
 }
 
-/*================================================================================================*/
-// The QuickReact class methods perform all the processing of parsing Quick-React markup into an 
-// n-ary tree, which can then be output as React folder and file components for quick React project
-// setup.
+/**
+ * @classdesc The QuickReact class methods perform all the processing of parsing Quick-React markup into an 
+ * n-ary tree, which can then be output as React folder and file components for quick React project setup
+ * @class
+ */
 
 class QuickReact {
 
-    // Instantiates an empty n-ary tree as a JavaScript object
+    /**
+     * Instantiates an empty n-ary tree as a JavaScript object
+     * @constructor
+     */
     constructor() {
         this._tree=new NaryTree();
     }
 
+    /**
+     * Retrieve a reference to this NaryTree
+     * @returns {NaryTree} NaryTree object
+     */
     get tree() {
         return this._tree;
     }
 
+    /**
+     * The parseMarkup method takes submitted Quick-React JSX markup code and produces an n-Ary tree structure representing the components, their nested
+     * structure, and each element's attributes.
+     * @param {string} code string - Quick-Start markup code in text JSX format 
+     * @returns {NaryTree} NaryTree object - an n-Ary tree representing the supplied Quick-React markup code
+     */
     parseMarkup(code) {
         if ( (code===undefined) || (code===null) || (typeof code !== 'string') ) {
             return this._tree;
@@ -483,7 +567,6 @@ class QuickReact {
         }
 
 
-
         // Next we will fill in our n-ary tree data structure 
         for (let i=0; i<quickreactElementArray.length; i++) {
 
@@ -515,19 +598,27 @@ class QuickReact {
         return this._tree;
     }
 
-    /*==========================================================================================*/
-
-    // This function prints a strings from the current code index to a specified length to provide the developer/user
-    // with a reference as to where their code may have a syntax error.
+    /**
+     * This function prints a strings from the current code index to a specified length to provide the developer/user
+     * with a reference as to where their code may have a syntax error.
+     * @method
+     * @param {string} code - the Quick-React markup code
+     * @param {number} index - the character position in the code where an error was found
+     * @param {number} length - the length is characters of surrounding context text to display in the response message
+     * @returns {string} message - a message regarding the error found
+     */
     _printRef(code, index, length) {
         return `Reference: ${code.slice(index, index+length)}`
     }
 
-    /*==========================================================================================*/
-
-    // The _multiplier function that an attribute key name as an argument and determined whether a multiplier 
-    // express is used, denoted by an '*', to indicate a repeat of the item a certain number of times.
-    // Multiplier values can be a single integer digit or two integer digits long.
+    /**
+     * The _multiplier function checks the passed attribute and determines whether a multiplier 
+     * expression is used in the attribute, denoted by an '*', to request a repeat of the item a specified number of times.
+     * Multiplier values can be a single integer digit or two integer digits long.
+     * @method
+     * @param {string} attribute string - the attribute key to search for
+     * @returns {number} number - returns the multiplier value found or zero
+     */
     _multiplier(attribute) {
         if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(parseInt(attribute.slice(-2))))  ) {
             const num=(parseInt(attribute.slice(-2)));
@@ -542,8 +633,17 @@ class QuickReact {
         }
     }
 
-    // This is the same as the _multiplier function except that it looks through all of the component's attributes for
-    // the first matching attribute, compared via key name, and then checks to see if a multiplier expression is used.
+    /**
+      * This is the same as the _multiplier function except that it looks through all of the component's attributes for
+      * the first matching attribute, compared via key name, and then checks to see if a multiplier expression is used.
+      * @method
+      * @param {quickReactElement} component - a Quick-React object element to search
+      * @param {string} searchAttribute - the attribute to search for in the element
+      * @param {array} specifiedNameArray - an array used to hold values of requested field/variable names in the markup
+      * @param {string} defaultName - a default name to use for a field/variable if specified names are used in the markup
+      * @param {number} matchIndex - add support for use of an attribute more than one time in a single component
+      * @returns {number} number - returns the multiplier value found or zero
+      */
     _findMultiplier(component, searchAttribute, specifiedNameArray, defaultName, matchIndex) {
 
         const attributes = component.getAllAttributes(component);
@@ -617,7 +717,14 @@ class QuickReact {
 
     /*==========================================================================================*/
 
-
+    /**
+     * A function to generate React directories and files based on the n-Ary tree representation of the Quick-React markup
+     * @method
+     * @param {string} userID - The user's unique id, as assigned by MongoDB.
+     * @param {string} projectID - The user's unqiue project ID, as assigned by MongoDB
+     * @param {NaryTree} tree - The tre eof parsed values representing the structure of this Quick-React project
+     * @returns - Stores the directories and files for the project and generates a zip file with all of the content archived into a single downloadable document.
+     */
     generateProjectFiles(userID, projectID, tree) {
 
 
@@ -761,7 +868,16 @@ class QuickReact {
 /*================================================================================================*/
 /*================================================================================================*/
 
-
+/**
+ * Output the index.js file as index_qr.js for this React project
+ * @method
+ * @param {boolean} useBootstrap - boolean flag indicating whether react-bootstrap should be used
+ * @param {object} quickReact - the instance of the Quick-React project object
+ * @param {NaryTree} tree - the parse tree of object and values for this project
+ * @param {QuickReactElement} quickReactElement - a specific quickReactElement
+ * @param {NaryNode} node - a specific node in the project tree
+ * @returns - Outputs the index.js file as index_qr.js for this React project
+ */
 function output_index(useBootstrap, quickReact, tree, quickReactElement, node) {
 
 let output = "";
@@ -825,7 +941,16 @@ return output;
 /*================================================================================================*/
 /*================================================================================================*/
 
-
+/**
+ * Output the App.js file as App_qr.js for this React project
+ * @method
+ * @param {boolean} useBootstrap - boolean flag indicating whether react-bootstrap should be used
+ * @param {object} quickReact - the instance of the Quick-React project object
+ * @param {NaryTree} tree - the parse tree of object and values for this project
+ * @param {QuickReactElement} quickReactElement - a specific quickReactElement
+ * @param {NaryNode} node - a specific node in the project tree
+ * @returns - Outputs the App.js file as App_qr.js for this React project
+ */
 function output_app(useBootstrap, quickReact, tree, quickReactElement, node) {
 
 let specifiedNameArray=[];
@@ -1133,7 +1258,16 @@ return output;
 /*================================================================================================*/
 /*================================================================================================*/
 
-
+/**
+ * Output individual component files for the React project
+ * @method
+ * @param {boolean} useBootstrap - boolean flag indicating whether react-bootstrap should be used
+ * @param {object} quickReact - the instance of the Quick-React project object
+ * @param {NaryTree} tree - the parse tree of object and values for this project
+ * @param {QuickReactElement} quickReactElement - a specific quickReactElement
+ * @param {NaryNode} node - a specific node in the project tree
+ * @returns - Outputs a specific component file for this React project
+ */
 function output_component(useBootstrap, quickReact, tree, quickReactElement, node) {
 
     let specifiedNameArray=[];

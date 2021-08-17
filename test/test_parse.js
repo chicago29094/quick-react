@@ -1,3 +1,6 @@
+/**
+ * Mocha/Chai tests for Quick-React class and parsing library
+ */
 const assert = require('assert');
 const should = require('chai').should();
 const expect = require('chai').expect;
