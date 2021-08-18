@@ -27,7 +27,7 @@ https://quick-react-tool.netlify.app/
 
 ### Technologies used:
 - HTML5
-- Custom designed n-Ary tree JavaScript class library and Quick-React lexing, parsing, and component generation library.
+- Custom designed n-ary tree JavaScript class library and Quick-React lexing, parsing, and component generation library.
 - Custom designed VS Code Extension for in-editor Quick-React markup coding and React project creation 
 - CSS: Flexbox, React-Bootstrap, Nested Display Components, Responsive Design
 - JavaScript: loops, aync/await JSON data fetching through structured API calls, math methods/randomization, array methods, complex object data structures, arrow functions, n-ary trees, stacks, queues, and map data structures.
@@ -50,7 +50,7 @@ ___
 ## Lessons Learned/Ongoing Issues:
 ### Lessons Learned
 - VS Code is wonderful to work with and provides a rich API for extension building.
-- The n-Ary tree library was fairly easy to build using new features in JavaScript E6+ despite the immutable nature of JavaScript strings.
+- The n-ary tree library was fairly easy to build using new features in JavaScript E6+ despite the immutable nature of JavaScript strings.
 - The nested nature of React's components and prop passing lends itself readily to an outline or wire-frame markup/description.
 - JWT is flexible but additional security can be utilized for more critical projects.
 
