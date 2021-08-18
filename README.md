@@ -14,7 +14,7 @@ Quick-React addresses this need by utilizing a simple JSX-style markup format, i
 
 ### Documentation
 Full documentation regarding the n-ary tree JavaScript library and Quick-React markup is available on the Quick-React Website:  
-https://quick-react-tool.netlify.app/documenation/
+https://quick-react-tool.netlify.app/documentation/
 
 
 **Link to GitHub Repository site Quick-React Back-end API:**  
