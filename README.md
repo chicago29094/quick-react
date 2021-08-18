@@ -12,20 +12,16 @@ Quick-React is a Website and VS Code extension developed to make the development
 
 Quick-React addresses this need by utilizing a simple JSX-style markup format, in a simple to understand outline format, that is parsed into a component data-structure by the Quick-React Website or VS Code extension.  This data is then used to generate either a ZIP archive of the starting React directories and files, when the Quick-React Website is used, or is injected directly into your project via the VS Code extension when working locally.
 
-**Link to GitHub Repository site Quick-React Back-end API:**
-
+**Link to GitHub Repository site Quick-React Back-end API:**  
 https://github.com/chicago29094/quick-react
 
-**Link to GitHub Repository site Quick-React Front-End:**
-
+**Link to GitHub Repository site Quick-React Front-End:**  
 https://github.com/chicago29094/quick-react-frontend
 
-**Link to GitHub Repository site Quick-React VS Code Extension:**
-
+**Link to GitHub Repository site Quick-React VS Code Extension:**  
 https://github.com/chicago29094/quick-react-code
 
-**Link to Deployed public Website:**
-
+**Link to Deployed public Website:**  
 https://quick-react-tool.netlify.app/
 
 
