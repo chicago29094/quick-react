@@ -4,7 +4,7 @@
 *A node application to create React hook-based boilerplate files automatically from a simple outline description.*
 
 ___
-![Quick-React](https://quick-react-tool.netlify.app/static/media/quick_react_project.png)
+![Quick-React](https://quick-react-tool.netlify.app/images/quick_react_project.png)
 ___
 
 ### Description
