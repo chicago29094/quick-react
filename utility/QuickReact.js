@@ -13,7 +13,8 @@ var AdmZip = require('adm-zip');
 class QuickReactElement {
 
     /**
-     * @constructor - The QuickReactElement class object constructor method
+     * The QuickReactElement class object constructor method
+     * @constructor
      * @param {string} name - a name for this element
      * @param {string} type - a type to categorize this element 
      * @param {Object} attributes object - a shallow object containing [key, value] pairs 
@@ -42,7 +43,8 @@ class QuickReactElement {
     }
 
     /**
-     * @method - getter
+     * Get this element's designated type.
+     * @method
      * @returns - this element's designated type
      */
     get type() {
@@ -50,7 +52,8 @@ class QuickReactElement {
     }
 
     /**
-     * @method - setter method to set this element's type value
+     * Set this element's type value
+     * @method
      * @param {string} typeValue string - the element's type value 
      */
     set type(typeValue) {
@@ -58,7 +61,8 @@ class QuickReactElement {
     }
 
     /**
-     * @method - getter
+     * Get this element's subtype value
+     * @method
      * @returns {string} this element's designated subtype
      */
     get subtype() {
@@ -66,7 +70,8 @@ class QuickReactElement {
     }
 
     /**
-     * @method - setter method to set this element's subtype value
+     * Set this element's subtype value
+     * @method
      * @param {string} subtypeValue string - the element's subtype value 
      */
     set subtype(subtypeValue) {
@@ -74,7 +79,8 @@ class QuickReactElement {
     }
 
     /**
-     * @method - getter
+     * Get the element's name.
+     * @method
      * @returns  {string} this element's name
      */
     get name() {
@@ -82,7 +88,8 @@ class QuickReactElement {
     }
 
     /**
-     * @method - setter method to set this element's name
+     * Set this element's name.
+     * @method
      * @param {string} nameValue string - the element's name 
      */    
     set name(nameValue) {
