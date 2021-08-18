@@ -14,12 +14,16 @@ Quick-React addresses this need by utilizing a simple JSX-style markup format, i
 
 **Link to GitHub Repository site Quick-React Back-end API:**
 https://github.com/chicago29094/quick-react
+
 **Link to GitHub Repository site Quick-React Front-End:**
 https://github.com/chicago29094/quick-react-frontend
+
 **Link to GitHub Repository site Quick-React VS Code Extension:**
 https://github.com/chicago29094/quick-react-code
+
 **Link to Deployed public Website:**
 https://quick-react-tool.netlify.app/
+
 
 ### Technologies used:
 - HTML5
