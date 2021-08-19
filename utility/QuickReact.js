@@ -716,6 +716,7 @@ class QuickReact {
             specifiedNameArray[i]['default']=''+defaultName.trim()+(i+1);
             specifiedNameArray[i]['lower']=specifiedNameArray[i]['default'].toLowerCase();
             specifiedNameArray[i]['mixed']=specifiedNameArray[i]['lower'][0].toUpperCase()+specifiedNameArray[i]['lower'].slice(1);
+
         }        
 
         return num;        
@@ -978,6 +979,7 @@ if (hooks!==undefined) {
     if (hooks.indexOf('useContext')!=-1)    { hookTokenList=hookTokenList+comma+'useContext'; comma=", "; }
     if (hooks.indexOf('useReducer')!=-1)    { hookTokenList=hookTokenList+comma+'useReducer'; comma=", "; }
 
+    if (hookTokenList!=="")
     output = output + `import { ${hookTokenList} } from 'react';\n`;
 }
 
@@ -996,6 +998,7 @@ if ( (hooks!==undefined) || (reactSwitch!==undefined) || (reactRoute!==undefined
     if ((reactRoute!==undefined) && (reactRoute===true))     { tokenList=tokenList+comma+'Route'; comma=", "; }
     if ((reactLink!==undefined) && (reactLink===true))     { tokenList=tokenList+comma+'Link'; comma=", "; }
 
+    if (tokenList!=="")
     output = output + `import { ${tokenList} } from "react-router-dom";\n`;
 }
 
@@ -1025,7 +1028,7 @@ if ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) )  {
     matchIndex=0;
     while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
         for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i++) {
-            output = output + `export const ${specifiedNameArray[i]} = React.createContext(); \n`;
+            output = output + `export const ${specifiedNameArray[i].mixed} = React.createContext(); \n`;
         }
         output = output + `\n`;
         matchIndex++;
@@ -1038,7 +1041,7 @@ if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
     matchIndex=0;
     while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
         for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i++) {
-            output = output + `export const ${specifiedNameArray[i]} = React.createContext();\n`;
+            output = output + `export const ${specifiedNameArray[i].mixed} = React.createContext();\n`;
         }
         output = output + `\n`;
         matchIndex++;
@@ -1069,7 +1072,7 @@ if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
         output = output + `
         
         // This useReducer hook can call local functions to handle the requested actions if necessary
-        function ${specifiedNameArray[i]}(state, action) {
+        function ${specifiedNameArray[i].lower}(state, action) {
             switch (action.type) {
             case 'Case1':
                 return newState;
@@ -1089,7 +1092,7 @@ if ( (hooks!==undefined) && (hooks.indexOf('useReducer')!=-1) ) {
             loggedin: false,
         }
 
-        const [sampleState${(i+1)}, dispatch${(i+1)}] = useReducer(${specifiedNameArray[i]}, initialState${(i+1)});
+        const [sampleState${(i+1)}, dispatch${(i+1)}] = useReducer(${specifiedNameArray[i].lower}, initialState${(i+1)});
 
         `;
     }
@@ -1102,14 +1105,14 @@ let useForm=quickReactElement.getAttribute('form');
 if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) && (useForm!==undefined) && (useForm===true) ) {
 
     output = output + 
-    `    
-    // sample initialFormValues
-    const initialFormValues1 = {
-        first_name: "",
-        last_name: "",
-        email_address: "",
-    }
-    \n`;
+`    
+// sample initialFormValues
+const initialFormValues1 = {
+    first_name: "",
+    last_name: "",
+    email_address: "",
+}
+\n`;
 
     specifiedNameArray=[];
     matchIndex=0;
@@ -1128,7 +1131,7 @@ else if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1)  ) {
     matchIndex=0;
     while (quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex)!==0 ) {
         for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex); i++) {
-            output = output + ` const [${specifiedNameArray[i]}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
+            output = output + ` const [${specifiedNameArray[i].lower}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
             output = output + ` \n`;
         }
         matchIndex++;
@@ -1296,6 +1299,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         if (hooks.indexOf('useContext')!=-1)    { hookTokenList=hookTokenList+comma+'useContext'; comma=", "; }
         if (hooks.indexOf('useReducer')!=-1)    { hookTokenList=hookTokenList+comma+'useReducer'; comma=", "; }
     
+        if (hookTokenList!=="")
         output = output + `import { ${hookTokenList} } from 'react';\n`;
 
         if (hooks.indexOf('useContext')!=-1) {
@@ -1320,6 +1324,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         if ((reactRoute!==undefined) && (reactRoute===true))     { tokenList=tokenList+comma+'Route'; comma=", "; }
         if ((reactLink!==undefined) && (reactLink===true))     { tokenList=tokenList+comma+'Link'; comma=", "; }
     
+        if (tokenList!=="")
         output = output + `import { ${tokenList} } from "react-router-dom";\n`;
     }
     
@@ -1349,7 +1354,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         matchIndex=0;
         while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) {
             for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i++) {
-                output = output + `export const ${specifiedNameArray[i]} = React.createContext(); \n`;
+                output = output + `export const ${specifiedNameArray[i].mixed} = React.createContext(); \n`;
             }
             output = output + `\n`;
             matchIndex++;
@@ -1363,7 +1368,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         matchIndex=0;
         while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
             for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i++) {
-                output = output + `export const ${specifiedNameArray[i]} = React.createContext();\n`;
+                output = output + `export const ${specifiedNameArray[i].mixed} = React.createContext();\n`;
             }
             output = output + `\n`;
             matchIndex++;
@@ -1373,10 +1378,11 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     let useForm=quickReactElement.getAttribute('form');
     let useMap=quickReactElement.getAttribute('map');
 
-    output = output + `
-    export const ${quickReactElement.name} = (props) => {
-    
-    \n`;
+    output = output + 
+`
+export const ${quickReactElement.name} = (props) => { 
+
+\n`;
     
     if ( (hooks!==undefined) && (hooks.indexOf('useContext')!=-1) ) {
         output = output + `// If you are using context exported from another parent component\n`;
@@ -1403,7 +1409,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
             output = output + `
             
             // This useReducer hook can call local functions to handle the requested actions if necessary
-            function s${specifiedNameArray[i]}(state, action) {
+            function s${specifiedNameArray[i].lower}(state, action) {
                 switch (action.type) {
                 case 'Case1':
                     return newState;
@@ -1423,7 +1429,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
                 loggedin: false,
             }
             
-            const [sampleState${(i+1)}, dispatch${(i+1)}] = useReducer(${specifiedNameArray[i]}, initialState${(i+1)});
+            const [sampleState${(i+1)}, dispatch${(i+1)}] = useReducer(${specifiedNameArray[i].lower}, initialState${(i+1)});
             
             `;
             }
@@ -1435,14 +1441,14 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
     if ( (hooks!==undefined) && (hooks.indexOf('useState')!=-1) && (useForm!==undefined) && (useForm===true) ) {
 
         output = output + 
-        `    
-        // sample initialFormValues
-        const initialFormValues1 = {
-            first_name: "",
-            last_name: "",
-            email_address: "",
-        }
-        \n`;
+    `    
+    // sample initialFormValues
+    const initialFormValues1 = {
+        first_name: "",
+        last_name: "",
+        email_address: "",
+    }
+    \n`;
     
         specifiedNameArray=[];
         matchIndex=0;
@@ -1461,7 +1467,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
         matchIndex=0;
         while (quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex)!==0) {
             for (let i=0; i<quickReact._findMultiplier(quickReactElement, 'useState', specifiedNameArray, 'appState', matchIndex); i++) {
-                output = output + ` const [${specifiedNameArray[i]}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
+                output = output + ` const [${specifiedNameArray[i].lower}, set${specifiedNameArray[i].mixed}] = useState({});\n`;
                 output = output + ` \n`;
             }
             matchIndex++;
@@ -2019,7 +2025,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
             matchIndex=0;
             while (quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex)!==0) {
                 for (let i=quickReact._findMultiplier(quickReactElement, 'useReducer', specifiedNameArray, 'SampleDispatchContext', matchIndex); i>0; i--) {
-                    output = output + `    </${specifiedNameArray[i]}.Provider>\n`;
+                    output = output + `    </${specifiedNameArray[i].mixed}.Provider>\n`;
                 }
                 matchIndex++;
             }
@@ -2032,7 +2038,7 @@ function output_component(useBootstrap, quickReact, tree, quickReactElement, nod
             matchIndex=0;
             while (quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex)!==0) { 
                 for (let i=quickReact._findMultiplier(quickReactElement, 'useContext', specifiedNameArray, 'SampleContext', matchIndex); i>0; i--) {
-                    output = output + `    </${specifiedNameArray[i]}.Provider>\n`;
+                    output = output + `    </${specifiedNameArray[i].mixed}.Provider>\n`;
                 }
                 matchIndex++;
             }

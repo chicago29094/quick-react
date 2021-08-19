@@ -325,7 +325,7 @@ class NaryTree {
     /**
      * if naryNode is not specified, height returns the height of the naryTree from the root to the leaf nodes
      * if naryNode is specified, height return the height of the naryTree from the naryNode to the leaf nodes
-     * @param {Object} NaryNode node object - an n-ary node present in this tree
+     * @param {Object} naryNode NaryNode node object - an n-ary node present in this tree
      * @returns {number} height integer - the height of the tree in levels from the reference node to the deepest leaf node      
      */
     height(naryNode) {
@@ -404,7 +404,7 @@ class NaryTree {
     /**
      * returns a pre-order iterator for this n-ary tree
      * @param {Object} node NaryNoe object - the parent n-ary node
-     * @param {number} [node=this._modCount] number - the modCount value is used to track whether the tree has been modified during the iteration, which is an error condition
+     * @param {number} [startModCount=this._modCount] number - the modCount value is used to track whether the tree has been modified during the iteration, which is an error condition
      * @yields {iterator} iterator - a JavaScript iterator that iterates over this tree in pre-order order starting from the referenced node 
      */
     * preOrderIterator(node, startModCount) {
@@ -421,7 +421,7 @@ class NaryTree {
             return null;
         }
 
-        if (count !== this_modCount) {
+        if (count !== this._modCount) {
             throw new ReferenceError("Error: the n-ary tree was modified during iteration of the tree.");
         }
         
