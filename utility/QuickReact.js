@@ -45,7 +45,7 @@ class QuickReactElement {
     /**
      * Get this element's designated type.
      * @method
-     * @returns - this element's designated type
+     * @returns {string} - this element's designated type
      */
     get type() {
         return this._type;
@@ -81,7 +81,7 @@ class QuickReactElement {
     /**
      * Get the element's name.
      * @method
-     * @returns  {string} this element's name
+     * @returns {string} this element's name
      */
     get name() {
         return this._name;
