@@ -110,7 +110,7 @@ class QuickReactElement {
      * Safely Check to see if the Quick-React element has a specific attribute key set to a specific value
      * This method does not return undefined for undefined properties, it always returns a boolean true or false value
      * @method
-     * @param {obj} obj object - check to see whether this element has an attribute with the specified property key and value, submitted as a shallow object
+     * @param {Object} obj object - check to see whether this element has an attribute with the specified property key and value, submitted as a shallow object
      * @returns {boolean} does this Quick-React element have this attribute key and value?
     */
     safeHasAttribute(obj) {
@@ -161,7 +161,7 @@ class QuickReactElement {
     /**
      * Set a key value pair as an attribute of this element
      * @method
-     * @param {Object} {key:value} object to be set as a new attribute of this element or to replace an existing attribute with the same key
+     * @param {Object} obj {key:value} object to be set as a new attribute of this element or to replace an existing attribute with the same key
      * @returns {Object} map object - attribute map object is returned 
      */
     setAttribute( obj ) {
@@ -644,7 +644,7 @@ class QuickReact {
       * This is the same as the _multiplier function except that it looks through all of the component's attributes for
       * the first matching attribute, compared via key name, and then checks to see if a multiplier expression is used.
       * @method
-      * @param {Object} quickReactElement component - a Quick-React object element to search
+      * @param {Object} component quickReactElement component - a Quick-React object element to search
       * @param {string} searchAttribute - the attribute to search for in the element
       * @param {array[]} specifiedNameArray - an array used to hold values of requested field/variable names in the markup
       * @param {string} defaultName - a default name to use for a field/variable if specified names are used in the markup
@@ -690,7 +690,7 @@ class QuickReact {
 
             // Trim out any starting or trailing whitespace, although there shouldn't be any at this point
             for (let i=0; i<fieldNameArray.length; i++) {
-                specifiedNameArray[i]={};
+                specifiedNameArray[i]=[];
                 specifiedNameArray[i]['default']=fieldNameArray[i].trim();
                 specifiedNameArray[i]['lower']=specifiedNameArray[i]['default'].toLowerCase();
                 specifiedNameArray[i]['mixed']=specifiedNameArray[i]['lower'][0].toUpperCase()+specifiedNameArray[i]['lower'].slice(1);
@@ -701,10 +701,10 @@ class QuickReact {
         }
         
         let num=1;
-        if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(attribute.slice(-2)))  ) {
+        if ( (attribute.length>=4) && (attribute.charAt(attribute.length-3)==='*') && (!isNaN(parseInt(attribute.slice(-2))))  ) {
             num=(parseInt(attribute.slice(-2)));
         }
-        else if ( (attribute.length>=3) && (attribute.charAt(attribute.length-2)==='*') && (!isNaN(attribute.slice(-1)))  ) {
+        else if ( (attribute.length>=3) && (attribute.charAt(attribute.length-2)==='*') && (!isNaN(parseInt(attribute.slice(-1))))  ) {
             num=(parseInt(attribute.slice(-1)));
         }
         else {
@@ -712,7 +712,7 @@ class QuickReact {
         }
 
         for (let i=0; i<num; i++) {
-            specifiedNameArray[i]={};
+            specifiedNameArray[i]=[];
             specifiedNameArray[i]['default']=''+defaultName.trim()+(i+1);
             specifiedNameArray[i]['lower']=specifiedNameArray[i]['default'].toLowerCase();
             specifiedNameArray[i]['mixed']=specifiedNameArray[i]['lower'][0].toUpperCase()+specifiedNameArray[i]['lower'].slice(1);
@@ -879,10 +879,10 @@ class QuickReact {
  * @method
  * @param {boolean} useBootstrap boolean - boolean flag indicating whether react-bootstrap should be used
  * @param {Object} quickReact object - the instance of the Quick-React project object
- * @param {Object} NaryTree tree object - the parse tree of object and values for this project
- * @param {Object} QuickReactElement object - a specific quickReactElement
- * @param {Object} NaryNode node object - a specific node in the project tree
- * @returns {undefined} Outputs the index.js file as index_qr.js for this React project
+ * @param {Object} tree NaryTree tree object - the parse tree of object and values for this project
+ * @param {Object} quickReactElement QuickReactElement object - a specific quickReactElement
+ * @param {Object} node NaryNode node object - a specific node in the project tree
+ * @returns {string} Outputs the content for the index.js file as index_qr.js for this React project
  */
 function output_index(useBootstrap, quickReact, tree, quickReactElement, node) {
 
@@ -952,10 +952,10 @@ return output;
  * @method
  * @param {boolean} useBootstrap boolean - boolean flag indicating whether react-bootstrap should be used
  * @param {Object} quickReact object - the instance of the Quick-React project object
- * @param {Object} NaryTree tree object - the parse tree of object and values for this project
- * @param {Object} QuickReactElement object - a specific quickReactElement
- * @param {Object} NaryNode node object - a specific node in the project tree
- * @returns {undefined} - Outputs the App.js file as App_qr.js for this React project
+ * @param {Object} tree NaryTree tree object - the parse tree of object and values for this project
+ * @param {Object} quickReactElement QuickReactElement object - a specific quickReactElement
+ * @param {Object} node NaryNode node object - a specific node in the project tree
+ * @returns {string} - Outputs the content for the App.js file as App_qr.js for this React project
  */
 function output_app(useBootstrap, quickReact, tree, quickReactElement, node) {
 
@@ -1269,10 +1269,10 @@ return output;
  * @method
  * @param {boolean} useBootstrap boolean - boolean flag indicating whether react-bootstrap should be used
  * @param {Object} quickReact object - the instance of the Quick-React project object
- * @param {Object} NaryTree tree object - the parse tree of object and values for this project
- * @param {Object} QuickReactElement object  - a specific quickReactElement
- * @param {Object} NaryNode node object - a specific node in the project tree
- * @returns {undefined}  Outputs a specific component file for this React project
+ * @param {Object} tree NaryTree tree object - the parse tree of object and values for this project
+ * @param {Object} quickReactElement QuickReactElement object  - a specific quickReactElement
+ * @param {Object} node NaryNode node object - a specific node in the project tree
+ * @returns {string}  Outputs the content for the specific component file for this React project
  */
 function output_component(useBootstrap, quickReact, tree, quickReactElement, node) {
 
