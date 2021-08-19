@@ -752,7 +752,7 @@ class QuickReact {
             useBootstrap=quickReactElement.getAttribute('react-bootstrap');
         }
 
-
+        const projectDirectory = path.join(__dirname, '..', 'projects');
         const userDirectory = path.join(__dirname, '..', 'projects', userID);
         const zipDirectory = path.join(__dirname, '..', 'projects', userID, 'ziparchives');
         const zipFilepath = path.join(__dirname, '..', 'projects', userID, 'ziparchives', `${projectID}.zip`);
@@ -761,6 +761,7 @@ class QuickReact {
         const imagesDirectory = path.join(__dirname, '..', 'projects', userID, projectID, "images")
         const assetsDirectory = path.join(__dirname, '..', 'projects', userID, projectID, "assets")
 
+        // console.log(projectDirectory);
         // console.log(userDirectory);
         // console.log(zipDirectory);
         // console.log(zipFilepath);
@@ -770,6 +771,9 @@ class QuickReact {
         // console.log(assetsDirectory);
 
         try {
+            if (!fs.existsSync(projectDirectory)) {
+                fs.mkdirSync(projectDirectory);
+            }
             if (!fs.existsSync(userDirectory)) {
                 fs.mkdirSync(userDirectory);
             }
