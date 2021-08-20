@@ -55,7 +55,7 @@ class NaryNode {
 /**
  * @classdesc This is an implementation of an iterable n-ary tree data structure and associated methods.
  * An n-ary tree is a tree data structure where any node may have an arbitrary number of 
- * child nodes. This can potentially used as a trie, but it is not designed for that purpose.
+ * child nodes. This can potentially be used as a trie, but it is not designed for that purpose.
  * @class
  */
 
@@ -105,7 +105,7 @@ class NaryTree {
     }
 
     /**
-     * Adds child as the the first child of the parent node in the n-ary tree
+     * Adds child as the first child of the parent node in the n-ary tree
      * @param {Object} childObj object value - an object to store in the node
      * @param {Object} parent NaryNode node object - the parent n-ary node
      * @returns {boolean} boolean value - success of operation
@@ -125,7 +125,7 @@ class NaryTree {
     }
 
     /**
-     * Adds child as the the last child of the parent node in the n-ary tree
+     * Adds child as the last child of the parent node in the n-ary tree
      * Returns a boolean value
      * @param {Object} childObj object value - an object to store in the node
      * @param {Object} parent NaryNode node object - the parent n-ary node
@@ -146,7 +146,7 @@ class NaryTree {
     }
 
     /**
-     * Adds child as the the position child of the parent node in the n-ary tree using level-order traversal
+     * Adds child as the position child of the parent node in the n-ary tree using level-order traversal
      * Returns a boolean value
      * @param {Object} childObj object value - an object to store in the node
      * @param {Object} parent NaryNode node object - the parent n-ary node
